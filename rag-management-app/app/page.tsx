@@ -10,6 +10,54 @@ export default function AdminDashboardPage() {
   const [user, setUser] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
 
+  const [waNumber, setWaNumber] = useState("")
+  const [inboxName, setInboxName] = useState("")
+  const [qrValue, setQrValue] = useState<string | null>(null)
+  const [creatingSession, setCreatingSession] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+
+  const handleCreateSession = async () => {
+    if (!waNumber || !inboxName) {
+      setCreateError("Please enter WhatsApp number and inbox name")
+      return
+    }
+
+    try {
+      setCreatingSession(true)
+      setCreateError(null)
+      setQrValue(null)
+
+      const res = await fetch(
+        "https://flow.dlabs.com.my/webhook/session creation",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            whatsapp_number: waNumber,
+            inbox_name: inboxName,
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error("Failed to create session")
+      }
+
+      const data = await res.json()
+
+      // adjust key if needed (qr / value)
+      setQrValue(data.qr ?? data.value)
+
+    } catch (err: any) {
+      setCreateError(err.message || "Something went wrong")
+    } finally {
+      setCreatingSession(false)
+    }
+  }
+
+
   useEffect(() => {
     const loadSession = async () => {
       const { data } = await supabase.auth.getSession()
@@ -268,26 +316,86 @@ export default function AdminDashboardPage() {
           🧙 Create Session Wizard
         </h2>
 
+        {/* Step 1 – Input */}
         <input
           className="border p-2 w-full"
           style={{ borderColor: "var(--border)" }}
           placeholder="WhatsApp Number"
+          value={waNumber}
+          onChange={(e) => setWaNumber(e.target.value)}
         />
 
         <input
           className="border p-2 w-full"
           style={{ borderColor: "var(--border)" }}
           placeholder="Inbox Name"
+          value={inboxName}
+          onChange={(e) => setInboxName(e.target.value)}
         />
 
-        <button className="px-4 py-2 bg-blue-600 text-white rounded">
-          Create Session
+        <button
+          onClick={handleCreateSession}
+          disabled={creatingSession}
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        >
+          {creatingSession ? "Creating session…" : "Create Session"}
         </button>
 
-        <div className="border p-3 rounded"> <h3 className="font-semibold mb-2"> Session Connection </h3> <div className="border h-40 flex items-center justify-center"> QR CODE PLACEHOLDER </div> <ol className="text-sm mt-2 list-decimal list-inside"> <li>Open WhatsApp</li> <li>Linked Devices</li> <li>Bind Device</li> <li>Scan QR</li> </ol> </div>
+        {createError && (
+          <p className="text-sm text-red-600">
+            {createError}
+          </p>
+        )}
 
-        <div className="border p-3 rounded"> <h3 className="font-semibold"> Session Detail </h3> <textarea className="w-full border p-2 rounded" placeholder="Optional system prompt..." /> </div>
+        {/* Step 2 – QR Code */}
+        <div className="border p-3 rounded space-y-2">
+          <h3 className="font-semibold mb-2">
+            Session Connection
+          </h3>
+
+          <div className="border h-64 flex items-center justify-center">
+            {qrValue ? (
+              <img
+                src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                  qrValue
+                )}&size=250&ecLevel=H`}
+                alt="WhatsApp QR Code"
+                style={{
+                  width: 250,
+                  height: 250,
+                  border: "10px solid white",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  borderRadius: 8,
+                }}
+              />
+            ) : (
+              <span className="text-sm opacity-60">
+                QR CODE PLACEHOLDER
+              </span>
+            )}
+          </div>
+
+          <ol className="text-sm mt-2 list-decimal list-inside">
+            <li>Open WhatsApp on your phone</li>
+            <li>Go to Linked Devices</li>
+            <li>Click Bind Device</li>
+            <li>Scan the QR code</li>
+          </ol>
+        </div>
+
+        {/* Step 3 – Optional prompt */}
+        <div className="border p-3 rounded">
+          <h3 className="font-semibold">
+            Session Detail
+          </h3>
+
+          <textarea
+            className="w-full border p-2 rounded"
+            placeholder="Optional system prompt..."
+          />
+        </div>
       </section>
+
 
       {/* ========================= */}
       {/* WARMING UP NUMBERS */}
