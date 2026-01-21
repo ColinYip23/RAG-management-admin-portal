@@ -3,8 +3,17 @@
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
+type WahaSession = {
+    id: number
+    Account: string
+    WhatsApp: string
+    Status: string
+    Enabled: boolean
+    modifiedat: string
+  }
+
 export default function AdminDashboardPage() {
-  const [editingSession, setEditingSession] = useState<string | null>(null)
+  const [editingSession, setEditingSession] = useState<WahaSession | null>(null)
   const [theme, setTheme] = useState<"light" | "dark">("light")
 
   const [user, setUser] = useState<any>(null)
@@ -30,15 +39,6 @@ export default function AdminDashboardPage() {
     setCreateError(null)
     setCreatingSession(false)
     setSecondsLeft(null)
-  }
-
-  type WahaSession = {
-    id: number
-    Account: string
-    WhatsApp: string
-    Status: string
-    Enabled: boolean
-    modifiedat: string
   }
 
   const handleCreateSession = async () => {
@@ -120,9 +120,8 @@ export default function AdminDashboardPage() {
     setSessionsLoading(true)
 
     const { data, error } = await supabase
-      .from("waha session")
+      .from("waha_sessions")
       .select("*")
-      .order("modifiedat", { ascending: false })
 
     if (!error && data) {
       setSessions(data)
@@ -130,6 +129,15 @@ export default function AdminDashboardPage() {
 
     setSessionsLoading(false)
   }
+
+  useEffect(() => {
+    console.log("URL =", process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log(
+      "ANON =",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20)
+    )
+  }, [])
+
 
   useEffect(() => {
     fetchSessions()
@@ -281,9 +289,26 @@ export default function AdminDashboardPage() {
         className="border p-4 rounded space-y-4"
         style={{ borderColor: "var(--border)" }}
       >
-        <h2 className="text-xl font-semibold">
-          📱 WhatsApp Sessions
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">
+            📱 WhatsApp Sessions
+          </h2>
+
+          <button
+            onClick={fetchSessions}
+            disabled={sessionsLoading}
+            title="Refresh sessions"
+            aria-label="Refresh sessions"
+            className="p-2 rounded border text-sm
+                      hover:bg-gray-100
+                      dark:hover:bg-gray-800
+                      disabled:opacity-50"
+            style={{ borderColor: "var(--border)" }}
+          >
+            🔄
+          </button>
+        </div>
+
 
         <table className="w-full border-collapse">
           <thead>
@@ -354,7 +379,7 @@ export default function AdminDashboardPage() {
                     style={{ borderColor: "var(--border)" }}
                   >
                     <a
-                      href={`https://chatwoot.yourdomain.com/app/accounts`}
+                      href={`https://cem.dlabs.com.my/app/accounts/1/inboxes/${s.id}/conversations`}
                       className="underline text-blue-600"
                       target="_blank"
                     >
@@ -364,7 +389,7 @@ export default function AdminDashboardPage() {
                     <button
                       className="px-2 py-1 border rounded"
                       style={{ borderColor: "var(--border)" }}
-                      onClick={() => setEditingSession(s.WhatsApp)}
+                      onClick={() => setEditingSession(s)}
                     >
                       Edit
                     </button>
@@ -403,13 +428,18 @@ export default function AdminDashboardPage() {
 
           <div className="border p-3 rounded space-y-2 dark:border-white-700">
             <p className="text-sm">
-              <span className="font-medium">Account:</span> Acme Corp
+              <span className="font-medium">Account:</span>{" "}
+              {editingSession.Account}
             </p>
+
             <p className="text-sm">
-              <span className="font-medium">WhatsApp:</span> +60 12-345 6789
+              <span className="font-medium">WhatsApp:</span>{" "}
+              {editingSession.WhatsApp}
             </p>
+
             <p className="text-sm">
-              <span className="font-medium">Status:</span> Connected
+              <span className="font-medium">Status:</span>{" "}
+              {editingSession.Status}
             </p>
           </div>
 
@@ -426,8 +456,14 @@ export default function AdminDashboardPage() {
             </h3>
 
             <label className="flex items-center gap-2">
-              <input type="checkbox" />
-              Enable AI Agent
+              <input
+                type="checkbox"
+                checked={editingSession.Enabled}
+                readOnly
+              />
+              <span>
+                {editingSession.Enabled ? "Enabled" : "Disabled"}
+              </span>
             </label>
 
             <textarea
@@ -539,18 +575,6 @@ export default function AdminDashboardPage() {
             <li>Click Link a Device</li>
             <li>Scan the QR code</li>
           </ol>
-        </div>
-
-        {/* Step 3 – Optional prompt */}
-        <div className="border p-3 rounded">
-          <h3 className="font-semibold">
-            Session Detail
-          </h3>
-
-          <textarea
-            className="w-full border p-2 rounded"
-            placeholder="System prompt (optional)..."
-          />
         </div>
       </section>
 
