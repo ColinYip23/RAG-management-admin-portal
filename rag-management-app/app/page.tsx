@@ -348,7 +348,7 @@ export default function AdminDashboardPage() {
             <textarea
               className="w-full border p-2 rounded
                          dark:bg-white-800 white:border-white-700"
-              placeholder="System prompt..."
+              placeholder="System prompt (optional)..."
               rows={4}
             />
           </div>
@@ -464,7 +464,7 @@ export default function AdminDashboardPage() {
 
           <textarea
             className="w-full border p-2 rounded"
-            placeholder="Optional system prompt..."
+            placeholder="System prompt (optional)..."
           />
         </div>
       </section>
