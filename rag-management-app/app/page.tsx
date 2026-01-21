@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function AdminDashboardPage() {
@@ -15,6 +15,19 @@ export default function AdminDashboardPage() {
   const [qrValue, setQrValue] = useState<string | null>(null)
   const [creatingSession, setCreatingSession] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+
+  const resetTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  const resetCreateSessionForm = () => {
+    setWaNumber("")
+    setInboxName("")
+    setQrValue(null)
+    setCreateError(null)
+    setCreatingSession(false)
+    setSecondsLeft(null)
+  }
 
   const handleCreateSession = async () => {
     if (!waNumber || !inboxName) {
@@ -50,6 +63,39 @@ export default function AdminDashboardPage() {
       // adjust key if needed (qr / value)
       setQrValue(data.qr ?? data.value)
 
+      // Clear existing timers
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+
+      // Start countdown
+      setSecondsLeft(60)
+
+      countdownIntervalRef.current = setInterval(() => {
+        setSecondsLeft((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(countdownIntervalRef.current!)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      // Auto-reset after 60 seconds
+      resetTimerRef.current = setTimeout(() => {
+        resetCreateSessionForm()
+      }, 60_000)
+
+      // Clear any existing timer
+      if (resetTimerRef.current) {
+        clearTimeout(resetTimerRef.current)
+      }
+
+      // Reset after 1 minute
+      resetTimerRef.current = setTimeout(() => {
+        resetCreateSessionForm()
+      }, 60_000) // 60 seconds
+
+
     } catch (err: any) {
       setCreateError(err.message || "Something went wrong")
     } finally {
@@ -76,6 +122,23 @@ export default function AdminDashboardPage() {
 
     return () => {
       listener.subscription.unsubscribe()
+    }
+  }, [])
+  
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+    }
+  }, [])
+
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) {
+        clearTimeout(resetTimerRef.current)
+      }
     }
   }, [])
 
@@ -349,9 +412,18 @@ export default function AdminDashboardPage() {
 
         {/* Step 2 – QR Code */}
         <div className="border p-3 rounded space-y-2">
-          <h3 className="font-semibold mb-2">
-            Session Connection
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">
+              Session Connection
+            </h3>
+
+            {secondsLeft !== null && (
+              <span className="text-sm text-red-600">
+                ⏱ QR expires in {secondsLeft}s
+              </span>
+            )}
+          </div>
+
 
           <div className="border h-64 flex items-center justify-center">
             {qrValue ? (
@@ -377,8 +449,9 @@ export default function AdminDashboardPage() {
 
           <ol className="text-sm mt-2 list-decimal list-inside">
             <li>Open WhatsApp on your phone</li>
+            <li>Press the 3 dots in the top right corner</li>
             <li>Go to Linked Devices</li>
-            <li>Click Bind Device</li>
+            <li>Click Link a Device</li>
             <li>Scan the QR code</li>
           </ol>
         </div>
