@@ -20,6 +20,9 @@ export default function AdminDashboardPage() {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  const [sessions, setSessions] = useState<WahaSession[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+
   const resetCreateSessionForm = () => {
     setWaNumber("")
     setInboxName("")
@@ -27,6 +30,15 @@ export default function AdminDashboardPage() {
     setCreateError(null)
     setCreatingSession(false)
     setSecondsLeft(null)
+  }
+
+  type WahaSession = {
+    id: number
+    Account: string
+    WhatsApp: string
+    Status: string
+    Enabled: boolean
+    modifiedat: string
   }
 
   const handleCreateSession = async () => {
@@ -102,6 +114,34 @@ export default function AdminDashboardPage() {
       setCreatingSession(false)
     }
   }
+
+
+  const fetchSessions = async () => {
+    setSessionsLoading(true)
+
+    const { data, error } = await supabase
+      .from("waha session")
+      .select("*")
+      .order("modifiedat", { ascending: false })
+
+    if (!error && data) {
+      setSessions(data)
+    }
+
+    setSessionsLoading(false)
+  }
+
+  useEffect(() => {
+    fetchSessions()
+
+    // refresh every 2 hours
+    const interval = setInterval(
+      fetchSessions,
+      2 * 60 * 60 * 1000
+    )
+
+    return () => clearInterval(interval)
+  }, [])
 
 
   useEffect(() => {
@@ -261,39 +301,84 @@ export default function AdminDashboardPage() {
           </thead>
 
           <tbody>
-            <tr>
-              <td className="border p-2" style={{ borderColor: "var(--border)" }}>
-                <div className="font-medium">Acme Corp</div>
-                <div className="text-sm opacity-70">
-                  +60 12-345 6789
-                </div>
-              </td>
-
-              <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>
-                Connected
-              </td>
-
-              <td className="border p-2 space-x-2 text-center" style={{ borderColor: "var(--border)" }}>
-                <a href="#" className="underline text-blue-600">
-                  Chatwoot
-                </a>
-
-                <button
-                  className="px-2 py-1 border rounded"
-                  style={{ borderColor: "var(--border)" }}
-                  onClick={() => setEditingSession("acme")}
-                >
-                  Edit
-                </button>
-
-                <button
-                  className="px-2 py-1 border rounded text-red-600"
+            {sessionsLoading ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="border p-4 text-center text-sm opacity-60"
                   style={{ borderColor: "var(--border)" }}
                 >
-                  Delete
-                </button>
-              </td>
-            </tr>
+                  Loading sessions…
+                </td>
+              </tr>
+            ) : sessions.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="border p-4 text-center text-sm opacity-60"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  No sessions found
+                </td>
+              </tr>
+            ) : (
+              sessions.map((s) => (
+                <tr key={s.id}>
+                  <td
+                    className="border p-2"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <div className="font-medium">{s.Account}</div>
+                    <div className="text-sm opacity-70">
+                      {s.WhatsApp}
+                    </div>
+                  </td>
+
+                  <td
+                    className="border p-2 text-center"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        s.Status === "CONNECTED"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {s.Status}
+                    </span>
+                  </td>
+
+                  <td
+                    className="border p-2 space-x-2 text-center"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <a
+                      href={`https://chatwoot.yourdomain.com/app/accounts`}
+                      className="underline text-blue-600"
+                      target="_blank"
+                    >
+                      Chatwoot
+                    </a>
+
+                    <button
+                      className="px-2 py-1 border rounded"
+                      style={{ borderColor: "var(--border)" }}
+                      onClick={() => setEditingSession(s.WhatsApp)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="px-2 py-1 border rounded text-red-600"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </section>
