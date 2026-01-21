@@ -9,7 +9,9 @@ type WahaSession = {
     WhatsApp: string
     Status: string
     Enabled: boolean
-    modifiedat: string
+    modified_at: string
+    created_at: string
+    inbox_id: number
   }
 
 export default function AdminDashboardPage() {
@@ -31,6 +33,9 @@ export default function AdminDashboardPage() {
 
   const [sessions, setSessions] = useState<WahaSession[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
+
+  const [updatingAgent, setUpdatingAgent] = useState(false)
+
 
   const resetCreateSessionForm = () => {
     setWaNumber("")
@@ -459,12 +464,67 @@ export default function AdminDashboardPage() {
               <input
                 type="checkbox"
                 checked={editingSession.Enabled}
-                readOnly
+                disabled={updatingAgent}
+                onChange={async (e) => {
+                  if (!editingSession) return
+
+                  const newValue = e.target.checked
+                  setUpdatingAgent(true)
+
+                  // 1️⃣ Call API route (Chatwoot)
+                  const res = await fetch("/api/chatwoot/agent-bot", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      inboxId: editingSession.inbox_id,
+                      enabled: newValue,
+                    }),
+                  })
+
+                  if (!res.ok) {
+                    alert("Failed to update Chatwoot agent bot")
+                    setUpdatingAgent(false)
+                    return
+                  }
+
+                  // 2️⃣ Update Supabase
+                  await supabase
+                    .from("waha_sessions")
+                    .update({ Enabled: newValue })
+                    .eq("id", editingSession.id)
+
+                  // 3️⃣ Update local state
+                  setEditingSession({
+                    ...editingSession,
+                    Enabled: newValue,
+                  })
+
+                  setSessions((prev) =>
+                    prev.map((s) =>
+                      s.id === editingSession.id
+                        ? { ...s, Enabled: newValue }
+                        : s
+                    )
+                  )
+
+                  setUpdatingAgent(false)
+                }}
               />
+
               <span>
                 {editingSession.Enabled ? "Enabled" : "Disabled"}
               </span>
             </label>
+
+            <span
+              className={`inline-block px-2 py-1 text-xs rounded ${
+                editingSession.Enabled
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {editingSession.Enabled ? "AI Agent Active" : "AI Agent Inactive"}
+            </span>
 
             <textarea
               className="w-full border p-2 rounded
