@@ -483,7 +483,11 @@ export default function AdminDashboardPage() {
 
           <select
             className="border px-3 py-1 rounded text-sm"
-            style={{ borderColor: "var(--border)" }}
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--bg)",
+              color: "var(--fg)"
+            }}
           >
             <option value="">All Departments</option>
             <option value="education">Education</option>
@@ -589,13 +593,21 @@ export default function AdminDashboardPage() {
           <div className="space-y-3">
             <input
               className="border p-2 w-full rounded"
-              style={{ borderColor: "var(--border)" }}
+              style={{
+                borderColor: "var(--border)",
+                backgroundColor: "var(--bg)",
+                color: "var(--fg)"
+              }}
               placeholder="Notebook Title"
             />
 
             <select
               className="border p-2 w-full rounded"
-              style={{ borderColor: "var(--border)" }}
+              style={{
+                borderColor: "var(--border)",
+                backgroundColor: "var(--bg)",
+                color: "var(--fg)"
+              }}
             >
               <option value="">Select Department</option>
               <option value="education">Education</option>
