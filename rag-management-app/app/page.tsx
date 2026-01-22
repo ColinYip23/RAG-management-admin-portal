@@ -471,50 +471,61 @@ export default function AdminDashboardPage() {
                   const newValue = e.target.checked
                   setUpdatingAgent(true)
 
-                  // 1️⃣ Call API route (Chatwoot)
-                  const res = await fetch("/api/chatwoot/agent-bot", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      inboxId: editingSession.inbox_id,
-                      enabled: newValue,
-                    }),
-                  })
-
-                  if (!res.ok) {
-                    alert("Failed to update Chatwoot agent bot")
-                    setUpdatingAgent(false)
-                    return
-                  }
-
-                  // 2️⃣ Update Supabase
-                  await supabase
-                    .from("waha_sessions")
-                    .update({ Enabled: newValue })
-                    .eq("id", editingSession.id)
-
-                  // 3️⃣ Update local state
-                  setEditingSession({
-                    ...editingSession,
-                    Enabled: newValue,
-                  })
-
-                  setSessions((prev) =>
-                    prev.map((s) =>
-                      s.id === editingSession.id
-                        ? { ...s, Enabled: newValue }
-                        : s
+                  try {
+                    // Call n8n webhook
+                    const res = await fetch(
+                      "",
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          inbox_id: editingSession.inbox_id,
+                          enabled: newValue,
+                        }),
+                      }
                     )
-                  )
 
-                  setUpdatingAgent(false)
+                    if (!res.ok) {
+                      throw new Error("Failed to trigger n8n workflow")
+                    }
+
+                    // Update Supabase
+                    const { error } = await supabase
+                      .from("waha_sessions")
+                      .update({ Enabled: newValue })
+                      .eq("id", editingSession.id)
+
+                    if (error) {
+                      throw error
+                    }
+
+                    // 3️⃣ Update local UI state
+                    setEditingSession({
+                      ...editingSession,
+                      Enabled: newValue,
+                    })
+
+                    setSessions((prev) =>
+                      prev.map((s) =>
+                        s.id === editingSession.id
+                          ? { ...s, Enabled: newValue }
+                          : s
+                      )
+                    )
+                  } catch (err) {
+                    console.error(err)
+                    alert("Failed to toggle AI agent")
+                  } finally {
+                    setUpdatingAgent(false)
+                  }
                 }}
               />
 
-              <span>
-                {editingSession.Enabled ? "Enabled" : "Disabled"}
-              </span>
+              <span>{editingSession.Enabled ? "Enabled" : "Disabled"}</span>
             </label>
+
 
             <span
               className={`inline-block px-2 py-1 text-xs rounded ${
