@@ -605,7 +605,7 @@ export default function AdminDashboardPage() {
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={editingSession.Enabled}
+                checked={editingSession.Enabled === true}
                 disabled={updatingAgent}
                 onChange={async (e) => {
                   if (!editingSession) return
