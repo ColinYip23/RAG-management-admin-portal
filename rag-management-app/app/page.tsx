@@ -43,6 +43,12 @@ export default function AdminDashboardPage() {
   const [authBusy, setAuthBusy] = useState(false)
   const [authMode, setAuthMode] = useState<"login" | "signup">("login")
 
+  const [systemPrompt, setSystemPrompt] = useState("")
+  const [savingPrompt, setSavingPrompt] = useState(false)
+
+  const [wizardOpen, setWizardOpen] = useState(true)
+
+
 
   const resetCreateSessionForm = () => {
     setWaNumber("")
@@ -207,6 +213,28 @@ export default function AdminDashboardPage() {
     console.log("SESSION FROM APP:", data.session)
   })
 }, [])
+
+
+  useEffect(() => {
+    if (!editingSession) return
+
+    const loadPrompt = async () => {
+      const { data, error } = await supabase
+        .from("system_prompts")
+        .select("prompt")
+        .eq("tenant", editingSession.WhatsApp)
+        .single()
+
+      if (!error && data?.prompt) {
+        setSystemPrompt(data.prompt)
+      } else {
+        setSystemPrompt("")
+      }
+    }
+
+    loadPrompt()
+  }, [editingSession])
+
 
 
   // Apply theme to <html>
@@ -605,7 +633,7 @@ export default function AdminDashboardPage() {
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={editingSession.Enabled === true}
+                checked={!!editingSession.Enabled}
                 disabled={updatingAgent}
                 onChange={async (e) => {
                   if (!editingSession) return
@@ -681,23 +709,50 @@ export default function AdminDashboardPage() {
 
             <textarea
               className="w-full border p-2 rounded
-                         dark:bg-white-800 white:border-white-700"
+                        dark:bg-white-800 dark:border-white-700"
               placeholder="System prompt (optional)..."
               rows={4}
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
             />
-          </div>
 
-          <div className="border p-3 rounded dark:border-gray-700">
-            <h3 className="font-semibold mb-2">
-              📚 Knowledge Base Tagging
-            </h3>
+            <button
+              disabled={savingPrompt}
+              onClick={async () => {
+                if (!editingSession) return
 
-            <label className="block">
-              <input type="checkbox" /> FAQ Notebook
-            </label>
-            <label className="block">
-              <input type="checkbox" /> Product Docs
-            </label>
+                setSavingPrompt(true)
+
+                try {
+                  const { error } = await supabase
+                    .from("system_prompts")
+                    .upsert(
+                      {
+                        tenant: editingSession.WhatsApp,
+                        prompt: systemPrompt,
+                      },
+                      { onConflict: "tenant" }
+                    )
+
+                  if (error) throw error
+
+                  alert("System prompt saved successfully ✅")
+                } catch (err) {
+                  console.error(err)
+                  alert("Failed to save system prompt")
+                } finally {
+                  setSavingPrompt(false)
+                }
+              }}
+              className="px-3 py-1 border rounded text-sm
+                        cursor-pointer
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed"
+              style={{ borderColor: "var(--border)" }}
+            >
+              {savingPrompt ? "Saving…" : "Save System Prompt"}
+            </button>
+
           </div>
         </section>
       )}
@@ -709,87 +764,106 @@ export default function AdminDashboardPage() {
         className="border p-4 rounded space-y-4"
         style={{ borderColor: "var(--border)" }}
       >
-        <h2 className="text-xl font-semibold">
-          🧙 Create Session Wizard
-        </h2>
-
-        {/* Step 1 – Input */}
-        <input
-          className="border p-2 w-full"
-          style={{ borderColor: "var(--border)" }}
-          placeholder="WhatsApp Number"
-          value={waNumber}
-          onChange={(e) => setWaNumber(e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full"
-          style={{ borderColor: "var(--border)" }}
-          placeholder="Inbox Name"
-          value={inboxName}
-          onChange={(e) => setInboxName(e.target.value)}
-        />
-
-        <button
-          onClick={handleCreateSession}
-          disabled={creatingSession}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        {/* Header */}
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setWizardOpen((prev) => !prev)}
         >
-          {creatingSession ? "Creating session…" : "Create Session"}
-        </button>
+          <h2 className="text-xl font-semibold">
+            🧙 Create Session Wizard
+          </h2>
 
-        {createError && (
-          <p className="text-sm text-red-600">
-            {createError}
-          </p>
-        )}
+          <span className="text-lg select-none">
+            {wizardOpen ? "⬆️" : "⬇️"}
+          </span>
+        </div>
 
-        {/* Step 2 – QR Code */}
-        <div className="border p-3 rounded space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold">
-              Session Connection
-            </h3>
+        {/* Collapsible Body */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            wizardOpen ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="pt-4 space-y-4">
+            {/* Step 1 – Input */}
+            <input
+              className="border p-2 w-full"
+              style={{ borderColor: "var(--border)" }}
+              placeholder="WhatsApp Number"
+              value={waNumber}
+              onChange={(e) => setWaNumber(e.target.value)}
+            />
 
-            {secondsLeft !== null && (
-              <span className="text-sm text-red-600">
-                ⏱ QR expires in {secondsLeft}s
-              </span>
+            <input
+              className="border p-2 w-full"
+              style={{ borderColor: "var(--border)" }}
+              placeholder="Inbox Name"
+              value={inboxName}
+              onChange={(e) => setInboxName(e.target.value)}
+            />
+
+            <button
+              onClick={handleCreateSession}
+              disabled={creatingSession}
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+            >
+              {creatingSession ? "Creating session…" : "Create Session"}
+            </button>
+
+            {createError && (
+              <p className="text-sm text-red-600">
+                {createError}
+              </p>
             )}
+
+            {/* Step 2 – QR Code */}
+            <div className="border p-3 rounded space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold">
+                  Session Connection
+                </h3>
+
+                {secondsLeft !== null && (
+                  <span className="text-sm text-red-600">
+                    ⏱ QR expires in {secondsLeft}s
+                  </span>
+                )}
+              </div>
+
+              <div className="border h-64 flex items-center justify-center">
+                {qrValue ? (
+                  <img
+                    src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                      qrValue
+                    )}&size=250&ecLevel=H`}
+                    alt="WhatsApp QR Code"
+                    style={{
+                      width: 250,
+                      height: 250,
+                      border: "10px solid white",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      borderRadius: 8,
+                    }}
+                  />
+                ) : (
+                  <span className="text-sm opacity-60">
+                    QR CODE PLACEHOLDER
+                  </span>
+                )}
+              </div>
+
+              <ol className="text-sm mt-2 list-decimal list-inside">
+                <li>Open WhatsApp on your phone</li>
+                <li>Press the 3 dots in the top right corner</li>
+                <li>Go to Linked Devices</li>
+                <li>Click Link a Device</li>
+                <li>Scan the QR code</li>
+              </ol>
+            </div>
           </div>
-
-
-          <div className="border h-64 flex items-center justify-center">
-            {qrValue ? (
-              <img
-                src={`https://quickchart.io/qr?text=${encodeURIComponent(
-                  qrValue
-                )}&size=250&ecLevel=H`}
-                alt="WhatsApp QR Code"
-                style={{
-                  width: 250,
-                  height: 250,
-                  border: "10px solid white",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  borderRadius: 8,
-                }}
-              />
-            ) : (
-              <span className="text-sm opacity-60">
-                QR CODE PLACEHOLDER
-              </span>
-            )}
-          </div>
-
-          <ol className="text-sm mt-2 list-decimal list-inside">
-            <li>Open WhatsApp on your phone</li>
-            <li>Press the 3 dots in the top right corner</li>
-            <li>Go to Linked Devices</li>
-            <li>Click Link a Device</li>
-            <li>Scan the QR code</li>
-          </ol>
         </div>
       </section>
+
 
       {/* ========================= */}
       {/* KNOWLEDGE BASE */}
