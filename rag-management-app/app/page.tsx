@@ -48,6 +48,7 @@ export default function AdminDashboardPage() {
 
   const [wizardOpen, setWizardOpen] = useState(false)
 
+  const [warmingUpNumbers, setWarmingUpNumbers] = useState<string[]>([])
 
 
   const resetCreateSessionForm = () => {
@@ -58,6 +59,15 @@ export default function AdminDashboardPage() {
     setCreatingSession(false)
     setSecondsLeft(null)
   }
+
+  const toggleWarmupNumber = (number: string) => {
+    setWarmingUpNumbers((prev) =>
+      prev.includes(number)
+        ? prev.filter((n) => n !== number)
+        : [...prev, number]
+    )
+  }
+
 
   const handleCreateSession = async () => {
     if (!waNumber || !inboxName) {
@@ -1124,32 +1134,95 @@ export default function AdminDashboardPage() {
           🔥 Warming Up Numbers
         </h2>
 
-        <label className="flex items-center gap-2">
-          <input type="checkbox" />
-          +60 12-345 6789
-        </label>
+        {/* Numbers list */}
+        <div className="space-y-2">
+          {sessions.length === 0 ? (
+            <p className="text-sm opacity-60">
+              No WhatsApp sessions available
+            </p>
+          ) : (
+            sessions.map((s) => (
+              <label
+                key={s.id}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={warmingUpNumbers.includes(s.WhatsApp)}
+                  onChange={() => toggleWarmupNumber(s.WhatsApp)}
+                />
+                <span className="text-sm">
+                  {s.WhatsApp}
+                </span>
+              </label>
+            ))
+          )}
+        </div>
 
+        {/* Controls */}
         <div className="flex gap-2">
           <button
-            className="px-3 py-1 border rounded"
+            disabled={warmingUpNumbers.length === 0}
+            className="px-3 py-1 border rounded
+                      disabled:opacity-50
+                      cursor-pointer
+                      disabled:cursor-not-allowed"
             style={{ borderColor: "var(--border)" }}
+            onClick={async () => {
+              try {
+                const res = await fetch(
+                  "https://flow2.dlabs.com.my/webhook-test/warmup",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      action: "start",
+                      numbers: warmingUpNumbers,
+                    }),
+                  }
+                )
+
+                if (!res.ok) {
+                  throw new Error("Failed to start warmup")
+                }
+
+                alert("Warm-up started for selected numbers ✅")
+              } catch (err) {
+                console.error(err)
+                alert("Failed to trigger warm-up")
+              }
+            }}
           >
             Start
           </button>
+
+
           <button
-            className="px-3 py-1 border rounded"
+            disabled={warmingUpNumbers.length === 0}
+            className="px-3 py-1 border rounded disabled:opacity-50"
             style={{ borderColor: "var(--border)" }}
+            onClick={() => {
+              console.log("Pause warmup for:", warmingUpNumbers)
+            }}
           >
             Pause
           </button>
+
           <button
-            className="px-3 py-1 border rounded"
+            disabled={warmingUpNumbers.length === 0}
+            className="px-3 py-1 border rounded disabled:opacity-50"
             style={{ borderColor: "var(--border)" }}
+            onClick={() => {
+              console.log("Stop warmup for:", warmingUpNumbers)
+            }}
           >
             Stop
           </button>
         </div>
       </section>
+
 
     </main>
   )
