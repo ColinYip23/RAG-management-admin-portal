@@ -787,7 +787,9 @@ export default function AdminDashboardPage() {
           <div className="pt-4 space-y-4">
             {/* Step 1 – Input */}
             <input
-              className="border p-2 w-full"
+              className="border p-2 w-full
+                        text-gray-900 placeholder-gray-400
+                        dark:text-gray-100 dark:placeholder-gray-500"
               style={{ borderColor: "var(--border)" }}
               placeholder="WhatsApp Number"
               value={waNumber}
@@ -795,9 +797,11 @@ export default function AdminDashboardPage() {
             />
 
             <input
-              className="border p-2 w-full"
+              className="border p-2 w-full
+                        text-gray-900 placeholder-gray-400
+                        dark:text-gray-100 dark:placeholder-gray-500"
               style={{ borderColor: "var(--border)" }}
-              placeholder="Inbox Name"
+              placeholder="Department/Inbox Name"
               value={inboxName}
               onChange={(e) => setInboxName(e.target.value)}
             />
