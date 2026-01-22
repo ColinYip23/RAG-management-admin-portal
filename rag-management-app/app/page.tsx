@@ -275,6 +275,11 @@ export default function AdminDashboardPage() {
 
               if (res.error) {
                 setAuthError(res.error.message)
+                return
+              }
+
+              if (authMode === "signup") {
+                alert("Check your email to confirm your account 📧")
               }
             }}
             className="px-4 py-2 border rounded text-sm disabled:opacity-50 cursor-pointer"
