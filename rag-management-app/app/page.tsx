@@ -9,7 +9,9 @@ type WahaSession = {
     WhatsApp: string
     Status: string
     Enabled: boolean
-    modifiedat: string
+    modified_at: string
+    created_at: string
+    inbox_id: number
   }
 
 export default function AdminDashboardPage() {
@@ -31,6 +33,14 @@ export default function AdminDashboardPage() {
 
   const [sessions, setSessions] = useState<WahaSession[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
+
+  const [updatingAgent, setUpdatingAgent] = useState(false)
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authBusy, setAuthBusy] = useState(false)
+
 
   const resetCreateSessionForm = () => {
     setWaNumber("")
@@ -210,32 +220,64 @@ export default function AdminDashboardPage() {
     )
   }
 
-  /*
   if (!user) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <p className="text-lg">
-        Please log in to access this page.
-      </p>
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-lg">
+          Please log in to access this page.
+        </p>
 
-      <button
-        onClick={async () =>
-          await supabase.auth.signInWithOAuth({
-            provider: "google",
-          })
-        }
-        className="px-4 py-2 border rounded text-sm"
-        style={{ borderColor: "var(--border)" }}
-      >
-        Login with Google
-      </button>
-    </div>
-  )
-}
-*/
+        <div className="flex flex-col gap-2 w-72">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border px-3 py-2 rounded text-sm"
+            style={{ borderColor: "var(--border)" }}
+          />
 
-  
-    
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border px-3 py-2 rounded text-sm"
+            style={{ borderColor: "var(--border)" }}
+          />
+
+          <button
+            disabled={authBusy}
+            onClick={async () => {
+              setAuthError(null)
+              setAuthBusy(true)
+
+              const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+              })
+
+              setAuthBusy(false)
+
+              if (error) {
+                setAuthError(error.message)
+              }
+            }}
+            className="px-4 py-2 border rounded text-sm disabled:opacity-50"
+            style={{ borderColor: "var(--border)" }}
+          >
+            {authBusy ? "Signing in…" : "Login"}
+          </button>
+
+          {authError && (
+            <p className="text-xs text-red-600 text-center">
+              {authError}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="min-h-screen p-6 space-y-10">
@@ -267,20 +309,58 @@ export default function AdminDashboardPage() {
               Logout
             </button>
           ) : (
-            <button
-              onClick={async () =>
-                await supabase.auth.signInWithOAuth({
-                  provider: "google",
-                })
-              }
-              className="px-3 py-1 border rounded text-sm"
-              style={{ borderColor: "var(--border)" }}
-            >
-              Login
-            </button>
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border px-2 py-1 rounded text-sm"
+                style={{ borderColor: "var(--border)" }}
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border px-2 py-1 rounded text-sm"
+                style={{ borderColor: "var(--border)" }}
+              />
+
+              <button
+                disabled={authBusy}
+                onClick={async () => {
+                  setAuthError(null)
+                  setAuthBusy(true)
+
+                  const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                  })
+
+                  setAuthBusy(false)
+
+                  if (error) {
+                    setAuthError(error.message)
+                  }
+                }}
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                style={{ borderColor: "var(--border)" }}
+              >
+                {authBusy ? "Signing in…" : "Login"}
+              </button>
+            </div>
           )}
         </div>
       </div>
+
+      {authError && (
+        <p className="text-xs text-red-600 mt-1 text-right">
+          {authError}
+        </p>
+      )}
+
 
       {/* ========================= */}
       {/* SESSION LISTING */}
@@ -459,12 +539,78 @@ export default function AdminDashboardPage() {
               <input
                 type="checkbox"
                 checked={editingSession.Enabled}
-                readOnly
+                disabled={updatingAgent}
+                onChange={async (e) => {
+                  if (!editingSession) return
+
+                  const newValue = e.target.checked
+                  setUpdatingAgent(true)
+
+                  try {
+                    // Call n8n webhook
+                    const res = await fetch(
+                      "",
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          inbox_id: editingSession.inbox_id,
+                          enabled: newValue,
+                        }),
+                      }
+                    )
+
+                    if (!res.ok) {
+                      throw new Error("Failed to trigger n8n workflow")
+                    }
+
+                    // Update Supabase
+                    const { error } = await supabase
+                      .from("waha_sessions")
+                      .update({ Enabled: newValue })
+                      .eq("id", editingSession.id)
+
+                    if (error) {
+                      throw error
+                    }
+
+                    // Update local UI state
+                    setEditingSession({
+                      ...editingSession,
+                      Enabled: newValue,
+                    })
+
+                    setSessions((prev) =>
+                      prev.map((s) =>
+                        s.id === editingSession.id
+                          ? { ...s, Enabled: newValue }
+                          : s
+                      )
+                    )
+                  } catch (err) {
+                    console.error(err)
+                    alert("Failed to toggle AI agent")
+                  } finally {
+                    setUpdatingAgent(false)
+                  }
+                }}
               />
-              <span>
-                {editingSession.Enabled ? "Enabled" : "Disabled"}
-              </span>
+
+              <span>{editingSession.Enabled ? "Enabled" : "Disabled"}</span>
             </label>
+
+
+            <span
+              className={`inline-block px-2 py-1 text-xs rounded ${
+                editingSession.Enabled
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {editingSession.Enabled ? "AI Agent Active" : "AI Agent Inactive"}
+            </span>
 
             <textarea
               className="w-full border p-2 rounded
