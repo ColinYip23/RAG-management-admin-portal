@@ -257,9 +257,33 @@ export default function AdminDashboardPage() {
           <button
             disabled={authBusy}
             onClick={async () => {
+              if (authBusy) return
+
               setAuthError(null)
               setAuthBusy(true)
 
+              // ✅ Only check on signup
+              if (authMode === "signup") {
+                const { data, error } = await supabase
+                  .from("profiles")
+                  .select("id")
+                  .eq("email", email)
+                  .maybeSingle()
+
+                if (error) {
+                  setAuthBusy(false)
+                  setAuthError("Unable to verify email. Try again.")
+                  return
+                }
+
+                if (data) {
+                  setAuthBusy(false)
+                  setAuthError("An account with this email already exists.")
+                  return
+                }
+              }
+
+              // Proceed with auth
               const res =
                 authMode === "login"
                   ? await supabase.auth.signInWithPassword({
@@ -274,9 +298,14 @@ export default function AdminDashboardPage() {
               setAuthBusy(false)
 
               if (res.error) {
-                setAuthError(res.error.message)
+                if (res.error.message.toLowerCase().includes("already registered")) {
+                  setAuthError("This email is already registered. Please log in.")
+                } else {
+                  setAuthError(res.error.message)
+                }
                 return
               }
+
 
               if (authMode === "signup") {
                 alert("Check your email to confirm your account 📧")
