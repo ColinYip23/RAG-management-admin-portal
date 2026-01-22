@@ -17,7 +17,7 @@ type WahaSession = {
 
 export default function AdminDashboardPage() {
   const [editingSession, setEditingSession] = useState<WahaSession | null>(null)
-  const [theme, setTheme] = useState<"light" | "dark">("light")
+  const [theme, setTheme] = useState<"light" | "dark">("dark")
 
   const [user, setUser] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
   const [systemPrompt, setSystemPrompt] = useState("")
   const [savingPrompt, setSavingPrompt] = useState(false)
 
-  const [wizardOpen, setWizardOpen] = useState(true)
+  const [wizardOpen, setWizardOpen] = useState(false)
 
 
 
