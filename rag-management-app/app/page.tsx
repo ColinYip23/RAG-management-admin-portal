@@ -36,6 +36,11 @@ export default function AdminDashboardPage() {
 
   const [updatingAgent, setUpdatingAgent] = useState(false)
 
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authBusy, setAuthBusy] = useState(false)
+
 
   const resetCreateSessionForm = () => {
     setWaNumber("")
@@ -215,32 +220,64 @@ export default function AdminDashboardPage() {
     )
   }
 
-  /*
   if (!user) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <p className="text-lg">
-        Please log in to access this page.
-      </p>
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-lg">
+          Please log in to access this page.
+        </p>
 
-      <button
-        onClick={async () =>
-          await supabase.auth.signInWithOAuth({
-            provider: "google",
-          })
-        }
-        className="px-4 py-2 border rounded text-sm"
-        style={{ borderColor: "var(--border)" }}
-      >
-        Login with Google
-      </button>
-    </div>
-  )
-}
-*/
+        <div className="flex flex-col gap-2 w-72">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border px-3 py-2 rounded text-sm"
+            style={{ borderColor: "var(--border)" }}
+          />
 
-  
-    
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border px-3 py-2 rounded text-sm"
+            style={{ borderColor: "var(--border)" }}
+          />
+
+          <button
+            disabled={authBusy}
+            onClick={async () => {
+              setAuthError(null)
+              setAuthBusy(true)
+
+              const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+              })
+
+              setAuthBusy(false)
+
+              if (error) {
+                setAuthError(error.message)
+              }
+            }}
+            className="px-4 py-2 border rounded text-sm disabled:opacity-50"
+            style={{ borderColor: "var(--border)" }}
+          >
+            {authBusy ? "Signing in…" : "Login"}
+          </button>
+
+          {authError && (
+            <p className="text-xs text-red-600 text-center">
+              {authError}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="min-h-screen p-6 space-y-10">
@@ -272,20 +309,58 @@ export default function AdminDashboardPage() {
               Logout
             </button>
           ) : (
-            <button
-              onClick={async () =>
-                await supabase.auth.signInWithOAuth({
-                  provider: "google",
-                })
-              }
-              className="px-3 py-1 border rounded text-sm"
-              style={{ borderColor: "var(--border)" }}
-            >
-              Login
-            </button>
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border px-2 py-1 rounded text-sm"
+                style={{ borderColor: "var(--border)" }}
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border px-2 py-1 rounded text-sm"
+                style={{ borderColor: "var(--border)" }}
+              />
+
+              <button
+                disabled={authBusy}
+                onClick={async () => {
+                  setAuthError(null)
+                  setAuthBusy(true)
+
+                  const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                  })
+
+                  setAuthBusy(false)
+
+                  if (error) {
+                    setAuthError(error.message)
+                  }
+                }}
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                style={{ borderColor: "var(--border)" }}
+              >
+                {authBusy ? "Signing in…" : "Login"}
+              </button>
+            </div>
           )}
         </div>
       </div>
+
+      {authError && (
+        <p className="text-xs text-red-600 mt-1 text-right">
+          {authError}
+        </p>
+      )}
+
 
       {/* ========================= */}
       {/* SESSION LISTING */}
@@ -501,7 +576,7 @@ export default function AdminDashboardPage() {
                       throw error
                     }
 
-                    // 3️⃣ Update local UI state
+                    // Update local UI state
                     setEditingSession({
                       ...editingSession,
                       Enabled: newValue,
