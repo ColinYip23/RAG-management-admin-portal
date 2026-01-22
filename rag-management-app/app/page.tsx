@@ -12,6 +12,7 @@ type WahaSession = {
     modified_at: string
     created_at: string
     inbox_id: number
+    email: string
   }
 
 export default function AdminDashboardPage() {
@@ -40,6 +41,7 @@ export default function AdminDashboardPage() {
   const [password, setPassword] = useState("")
   const [authError, setAuthError] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login")
 
 
   const resetCreateSessionForm = () => {
@@ -223,8 +225,14 @@ export default function AdminDashboardPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-lg">
-          Please log in to access this page.
+        <h1 className="text-xl font-semibold">
+          {authMode === "login" ? "Login" : "Create Account"}
+        </h1>
+
+        <p className="text-sm opacity-70">
+          {authMode === "login"
+            ? "Please log in to access this page."
+            : "Create an account to continue."}
         </p>
 
         <div className="flex flex-col gap-2 w-72">
@@ -252,21 +260,33 @@ export default function AdminDashboardPage() {
               setAuthError(null)
               setAuthBusy(true)
 
-              const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-              })
+              const res =
+                authMode === "login"
+                  ? await supabase.auth.signInWithPassword({
+                      email,
+                      password,
+                    })
+                  : await supabase.auth.signUp({
+                      email,
+                      password,
+                    })
 
               setAuthBusy(false)
 
-              if (error) {
-                setAuthError(error.message)
+              if (res.error) {
+                setAuthError(res.error.message)
               }
             }}
-            className="px-4 py-2 border rounded text-sm disabled:opacity-50"
+            className="px-4 py-2 border rounded text-sm disabled:opacity-50 cursor-pointer"
             style={{ borderColor: "var(--border)" }}
           >
-            {authBusy ? "Signing in…" : "Login"}
+            {authBusy
+              ? authMode === "login"
+                ? "Signing in…"
+                : "Creating account…"
+              : authMode === "login"
+              ? "Login"
+              : "Sign Up"}
           </button>
 
           {authError && (
@@ -275,9 +295,22 @@ export default function AdminDashboardPage() {
             </p>
           )}
         </div>
+
+        {/* Mode switch */}
+        <button
+          onClick={() =>
+            setAuthMode(authMode === "login" ? "signup" : "login")
+          }
+          className="text-xs underline opacity-70 cursor-pointer"
+        >
+          {authMode === "login"
+            ? "Don’t have an account? Sign up"
+            : "Already have an account? Login"}
+        </button>
       </div>
     )
   }
+
 
   return (
     <main className="min-h-screen p-6 space-y-10">
