@@ -925,9 +925,7 @@ export default function AdminDashboardPage() {
         defaultOpen={false}
       >
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">
-            📚 Knowledge Base Management
-          </h2>
+          
 
           <select
             className="border px-3 py-1 rounded text-sm"
