@@ -37,7 +37,7 @@ export default function CreateSessionWizard() {
                   text-gray-900 placeholder-gray-400
                   dark:text-gray-100 dark:placeholder-gray-500"
         style={{ borderColor: "var(--border)" }}
-        placeholder="Department / Inbox Name"
+        placeholder="Department Name"
         value={inboxName}
         onChange={(e) => setInboxName(e.target.value)}
       />
