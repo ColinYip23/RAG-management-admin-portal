@@ -50,6 +50,11 @@ export default function AdminDashboardPage() {
 
   const [warmingUpNumbers, setWarmingUpNumbers] = useState<string[]>([])
 
+  const [notebooks, setNotebooks] = useState<any[]>([])
+  const [selectedNotebooks, setSelectedNotebooks] = useState<number[]>([])
+  const [savingNotebooks, setSavingNotebooks] = useState(false)
+
+
 
   function CollapsibleSection({
     title,
@@ -108,6 +113,13 @@ export default function AdminDashboardPage() {
   }
 
 
+  const toggleNotebook = (id: number) => {
+  setSelectedNotebooks((prev) =>
+    prev.includes(id)
+      ? prev.filter((n) => n !== id)
+      : [...prev, id]
+  )
+}
 
 
   const resetCreateSessionForm = () => {
@@ -822,6 +834,76 @@ export default function AdminDashboardPage() {
               {savingPrompt ? "Saving…" : "Save System Prompt"}
             </button>
 
+          </div>
+          <div className="border p-3 rounded space-y-3 dark:border-white-700">
+            <h3 className="font-semibold">
+              📚 Notebook Tagging
+            </h3>
+
+            {notebooks.length === 0 ? (
+              <p className="text-sm opacity-60">
+                No notebooks available
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {notebooks.map((nb) => (
+                  <label
+                    key={nb.id}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedNotebooks.includes(nb.id)}
+                      onChange={() => toggleNotebook(nb.id)}
+                    />
+                    <span className="text-sm">{nb.title}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <button
+              disabled={savingNotebooks || selectedNotebooks.length === 0}
+              onClick={async () => {
+                if (!editingSession) return
+
+                setSavingNotebooks(true)
+
+                try {
+                  // Remove old mappings
+                  await supabase
+                    .from("session_notebooks")
+                    .delete()
+                    .eq("session_id", editingSession.id)
+
+                  // Insert new mappings
+                  const inserts = selectedNotebooks.map((notebookId) => ({
+                    session_id: editingSession.id,
+                    notebook_id: notebookId,
+                  }))
+
+                  const { error } = await supabase
+                    .from("session_notebooks")
+                    .insert(inserts)
+
+                  if (error) throw error
+
+                  alert("Notebook tags saved successfully ✅")
+                } catch (err) {
+                  console.error(err)
+                  alert("Failed to save notebook tags")
+                } finally {
+                  setSavingNotebooks(false)
+                }
+              }}
+              className="px-3 py-1 border rounded text-sm
+                        cursor-pointer
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed"
+              style={{ borderColor: "var(--border)" }}
+            >
+              {savingNotebooks ? "Saving…" : "Save Notebook Tags"}
+            </button>
           </div>
         </section>
       )}
