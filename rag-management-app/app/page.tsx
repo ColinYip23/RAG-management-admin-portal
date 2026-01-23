@@ -29,7 +29,6 @@ export default function AdminDashboardPage() {
     document.documentElement.classList.toggle("dark", theme === "dark")
   }, [theme])
 
-
   const {
     user,
     authLoading,
@@ -85,24 +84,16 @@ export default function AdminDashboardPage() {
       {/* GLOBAL HEADER */}
       {/* ========================= */}
       <HeaderBar
-        user={user}
         theme={theme}
         setTheme={setTheme}
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        authBusy={authBusy}
-        setAuthBusy={setAuthBusy}
-        setAuthError={setAuthError}
       />
+
 
       {authError && (
         <p className="text-xs text-red-600 mt-1 text-right">
           {authError}
         </p>
       )}
-
 
 
       {/* ========================= */}
@@ -114,6 +105,7 @@ export default function AdminDashboardPage() {
         onRefresh={fetchSessions}
         onEdit={setEditingSession}
       />
+
 
       {/* ========================= */}
       {/* EDIT SESSION */}
