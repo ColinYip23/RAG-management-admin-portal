@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import SessionTable from "./components/SessionTable"
-import CollapsibleSection from "./components/CollapsibleSection"
 import HeaderBar from "./components/HeaderBar"
 import { useAuth } from "./hooks/useAuth"
 import AuthScreen from "./components/AuthScreen"
