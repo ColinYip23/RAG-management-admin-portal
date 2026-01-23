@@ -960,9 +960,7 @@ export default function AdminDashboardPage() {
                 <th className="border p-2 text-left" style={{ borderColor: "var(--border)" }}>
                   Title
                 </th>
-                <th className="border p-2 text-left" style={{ borderColor: "var(--border)" }}>
-                  Sources
-                </th>
+                
                 <th className="border p-2 text-left" style={{ borderColor: "var(--border)" }}>
                   Created
                 </th>
@@ -978,10 +976,7 @@ export default function AdminDashboardPage() {
                   <div className="font-medium">Education FAQ</div>
                   <div className="text-sm opacity-70">Education Dept</div>
                 </td>
-                <td className="border p-2" style={{ borderColor: "var(--border)" }}>
-                  <div className="text-sm">12 documents</div>
-                  <div className="text-xs opacity-70">PDF, TXT, MD</div>
-                </td>
+                
                 <td className="border p-2 text-sm" style={{ borderColor: "var(--border)" }}>
                   Jan 15, 2026
                 </td>
@@ -1006,10 +1001,7 @@ export default function AdminDashboardPage() {
                   <div className="font-medium">Property Listings Guide</div>
                   <div className="text-sm opacity-70">Property Dept</div>
                 </td>
-                <td className="border p-2" style={{ borderColor: "var(--border)" }}>
-                  <div className="text-sm">8 documents</div>
-                  <div className="text-xs opacity-70">PDF, DOCX</div>
-                </td>
+                
                 <td className="border p-2 text-sm" style={{ borderColor: "var(--border)" }}>
                   Jan 10, 2026
                 </td>
@@ -1071,7 +1063,7 @@ export default function AdminDashboardPage() {
               >
                 Choose Files
               </button>
-              <p className="text-xs opacity-60 mt-2">Supported: PDF, TXT, MD, DOCX</p>
+              <p className="text-xs opacity-60 mt-2">Supported: xls, csv, pdf</p>
             </div>
 
             <div className="border p-3 rounded" style={{ borderColor: "var(--border)" }}>
