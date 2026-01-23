@@ -1100,9 +1100,7 @@ export default function AdminDashboardPage() {
                 <th className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>
                   Active Notebooks
                 </th>
-                <th className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>
-                  Total Documents
-                </th>
+                
                 <th className="border p-2 text-left" style={{ borderColor: "var(--border)" }}>
                   Last Updated
                 </th>
@@ -1115,7 +1113,7 @@ export default function AdminDashboardPage() {
               <tr>
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>Education</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>3</td>
-                <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>28</td>
+                
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>Jan 15, 2026 14:32</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>
                   <span className="text-green-600">✓ Synced</span>
@@ -1124,7 +1122,7 @@ export default function AdminDashboardPage() {
               <tr>
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>Property</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>2</td>
-                <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>15</td>
+                
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>Jan 12, 2026 09:15</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>
                   <span className="text-green-600">✓ Synced</span>
@@ -1133,7 +1131,7 @@ export default function AdminDashboardPage() {
               <tr>
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>Property Management</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>1</td>
-                <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>6</td>
+                
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>Jan 10, 2026 16:45</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>
                   <span className="text-yellow-600">⟳ Syncing...</span>
@@ -1142,7 +1140,7 @@ export default function AdminDashboardPage() {
               <tr>
                 <td className="border p-2" style={{ borderColor: "var(--border)" }}>FD Team</td>
                 <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>0</td>
-                <td className="border p-2 text-center" style={{ borderColor: "var(--border)" }}>0</td>
+                
                 <td className="border p-2 opacity-50" style={{ borderColor: "var(--border)" }}>—</td>
                 <td className="border p-2 text-center opacity-50" style={{ borderColor: "var(--border)" }}>—</td>
               </tr>
