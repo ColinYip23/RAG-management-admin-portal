@@ -22,11 +22,17 @@ export function useCreateSession() {
     setSecondsLeft(null)
   }
 
-  const createSession = async () => {
+  const createSession = async (notebooks: string[]) => {
     if (!waNumber || !inboxName) {
       setCreateError("Please enter WhatsApp number and inbox name")
       return
     }
+
+    if (!Array.isArray(notebooks)) {
+      setCreateError("Invalid notebook selection")
+      return
+    }
+
 
     try {
       setCreatingSession(true)
@@ -41,6 +47,7 @@ export function useCreateSession() {
           body: JSON.stringify({
             whatsapp_number: waNumber,
             inbox_name: inboxName,
+            notebooks, 
           }),
         }
       )

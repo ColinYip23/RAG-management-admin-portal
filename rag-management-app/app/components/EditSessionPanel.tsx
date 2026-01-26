@@ -32,7 +32,7 @@ export default function EditSessionPanel({
     toggle,
     save,
     saving: savingNotebooks,
-  } = useNotebookTagging(session.id)
+  } = useNotebookTagging(session.WhatsApp, session.Department)
 
   return (
     <section className="border p-4 rounded space-y-6 dark:border-white-700">
@@ -45,7 +45,7 @@ export default function EditSessionPanel({
 
       {/* Session Info */}
       <div className="border p-3 rounded space-y-2">
-        <p><b>Account:</b> {session.Account}</p>
+        <p><b>Department:</b> {session.Department}</p>
         <p><b>WhatsApp:</b> {session.WhatsApp}</p>
         <p><b>Status:</b> {session.Status}</p>
       </div>
@@ -118,7 +118,7 @@ export default function EditSessionPanel({
         )}
 
         <button
-          disabled={savingNotebooks || selected.length === 0}
+          disabled={savingNotebooks}
           onClick={async () => {
             await save()
             alert("Notebook tags saved ✅")

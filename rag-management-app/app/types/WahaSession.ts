@@ -1,6 +1,6 @@
 export type WahaSession = {
   id: number
-  Account: string
+  Department: string
   WhatsApp: string
   Status: string
   Enabled: boolean
@@ -8,4 +8,5 @@ export type WahaSession = {
   created_at: string
   inbox_id: number
   email: string
+  noteboks: Array<string>
 }

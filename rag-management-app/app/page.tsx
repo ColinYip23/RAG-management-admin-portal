@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import SessionTable from "./components/SessionTable"
-import CollapsibleSection from "./components/CollapsibleSection"
 import HeaderBar from "./components/HeaderBar"
 import { useAuth } from "./hooks/useAuth"
 import AuthScreen from "./components/AuthScreen"
@@ -28,7 +27,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark")
   }, [theme])
-
 
   const {
     user,
@@ -85,24 +83,16 @@ export default function AdminDashboardPage() {
       {/* GLOBAL HEADER */}
       {/* ========================= */}
       <HeaderBar
-        user={user}
         theme={theme}
         setTheme={setTheme}
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        authBusy={authBusy}
-        setAuthBusy={setAuthBusy}
-        setAuthError={setAuthError}
       />
+
 
       {authError && (
         <p className="text-xs text-red-600 mt-1 text-right">
           {authError}
         </p>
       )}
-
 
 
       {/* ========================= */}
@@ -114,6 +104,7 @@ export default function AdminDashboardPage() {
         onRefresh={fetchSessions}
         onEdit={setEditingSession}
       />
+
 
       {/* ========================= */}
       {/* EDIT SESSION */}

@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Admin Portal - RAG Management App",
   description: "Admin portal for managing RAG mapping and WhatsApp sessions.",
+  icons: {
+    icon: "/icon.png",
+  }
 };
 
 export default function RootLayout({

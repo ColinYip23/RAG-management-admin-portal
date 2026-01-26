@@ -4,65 +4,98 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
 type Notebook = {
-  id: number
+  id: string
   title: string
 }
 
-export function useNotebookTagging(sessionId: number) {
+export function useNotebookTagging(
+  whatsapp: string,
+  department: string
+) {
   const [notebooks, setNotebooks] = useState<Notebook[]>([])
-  const [selected, setSelected] = useState<number[]>([])
+  const [selected, setSelected] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  // Load notebooks + existing tags
   useEffect(() => {
-    if (!sessionId) return
+    async function load() {
+      setLoading(true)
 
-    const load = async () => {
-      const { data: all } = await supabase
-        .from("notebooks")
-        .select("id, title")
+      // 1️⃣ Fetch available notebooks (department + global)
+      const { data: notebookData, error: notebookError } =
+        await supabase
+          .from("notebooks")
+          .select("id, title")
+          .or(
+            `department.eq.${encodeURIComponent(
+              department
+            )},is_global.eq.true`
+          )
 
-      const { data: links } = await supabase
-        .from("session_notebooks")
-        .select("notebook_id")
-        .eq("session_id", sessionId)
+      if (notebookError) {
+        console.error("Failed to load notebooks", notebookError)
+        setLoading(false)
+        return
+      }
 
-      setNotebooks(all ?? [])
-      setSelected(links?.map((l) => l.notebook_id) ?? [])
+      setNotebooks(notebookData ?? [])
+
+      // 2️⃣ Fetch already-selected notebooks for this WhatsApp
+      const { data: sessionData, error: sessionError } =
+        await supabase
+          .from("waha_sessions")
+          .select("notebooks")
+          .eq("WhatsApp", whatsapp)
+          .single()
+
+      if (sessionError) {
+        console.error("Failed to load session notebooks", sessionError)
+        setLoading(false)
+        return
+      }
+
+      const savedNames: string[] = sessionData?.notebooks ?? []
+
+      // 3️⃣ Convert saved notebook names → IDs
+      const preselectedIds =
+        notebookData
+          ?.filter((n) => savedNames.includes(n.title))
+          .map((n) => n.id) ?? []
+
+      setSelected(preselectedIds)
+      setLoading(false)
     }
 
     load()
-  }, [sessionId])
+  }, [whatsapp, department])
 
-  const toggle = (id: number) => {
+  function toggle(id: string) {
     setSelected((prev) =>
       prev.includes(id)
-        ? prev.filter((n) => n !== id)
+        ? prev.filter((x) => x !== id)
         : [...prev, id]
     )
   }
 
-  const save = async () => {
+  async function save() {
     setSaving(true)
-    try {
-      await supabase
-        .from("session_notebooks")
-        .delete()
-        .eq("session_id", sessionId)
 
-      if (selected.length > 0) {
-        await supabase
-          .from("session_notebooks")
-          .insert(
-            selected.map((id) => ({
-              session_id: sessionId,
-              notebook_id: id,
-            }))
-          )
-      }
-    } finally {
-      setSaving(false)
+    const selectedNames = notebooks
+      .filter((n) => selected.includes(n.id))
+      .map((n) => n.title)
+
+    const { error } = await supabase
+      .from("waha_sessions")
+      .update({
+        notebooks: selectedNames,
+      })
+      .eq("WhatsApp", whatsapp)
+
+    if (error) {
+      console.error("Failed to save notebooks", error)
     }
+
+    setSaving(false)
   }
 
   return {
@@ -71,5 +104,6 @@ export function useNotebookTagging(sessionId: number) {
     toggle,
     save,
     saving,
+    loading,
   }
 }

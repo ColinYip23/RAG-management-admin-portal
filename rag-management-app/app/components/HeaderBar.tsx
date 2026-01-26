@@ -1,34 +1,26 @@
 "use client"
 
 import { supabase } from "@/lib/supabaseClient"
+import { useAuth } from "@/app/hooks/useAuth"
 
 type HeaderBarProps = {
-  user: any
   theme: "light" | "dark"
   setTheme: (t: "light" | "dark") => void
-
-  email: string
-  setEmail: (v: string) => void
-  password: string
-  setPassword: (v: string) => void
-
-  authBusy: boolean
-  setAuthBusy: (v: boolean) => void
-  setAuthError: (v: string | null) => void
 }
 
-export default function HeaderBar({
-  user,
-  theme,
-  setTheme,
-  email,
-  setEmail,
-  password,
-  setPassword,
-  authBusy,
-  setAuthBusy,
-  setAuthError,
-}: HeaderBarProps) {
+export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
+  const {
+    user,
+    email,
+    password,
+    authBusy,
+    authError,
+    setEmail,
+    setPassword,
+    setAuthError,
+    login,
+  } = useAuth()
+
   return (
     <div className="flex justify-between items-center">
       <div className="text-sm opacity-70">
@@ -47,7 +39,7 @@ export default function HeaderBar({
 
         {user ? (
           <button
-            onClick={async () => await supabase.auth.signOut()}
+            onClick={() => supabase.auth.signOut()}
             className="px-3 py-1 border rounded text-sm"
             style={{ borderColor: "var(--border)" }}
           >
@@ -61,7 +53,6 @@ export default function HeaderBar({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="border px-2 py-1 rounded text-sm"
-              style={{ borderColor: "var(--border)" }}
             />
 
             <input
@@ -70,34 +61,27 @@ export default function HeaderBar({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="border px-2 py-1 rounded text-sm"
-              style={{ borderColor: "var(--border)" }}
             />
 
             <button
               disabled={authBusy}
-              onClick={async () => {
+              onClick={() => {
                 setAuthError(null)
-                setAuthBusy(true)
-
-                const { error } = await supabase.auth.signInWithPassword({
-                  email,
-                  password,
-                })
-
-                setAuthBusy(false)
-
-                if (error) {
-                  setAuthError(error.message)
-                }
+                login()
               }}
               className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-              style={{ borderColor: "var(--border)" }}
             >
               {authBusy ? "Signing in…" : "Login"}
             </button>
           </div>
         )}
       </div>
+
+      {authError && (
+        <p className="text-xs text-red-600 absolute top-full right-0 mt-1">
+          {authError}
+        </p>
+      )}
     </div>
   )
 }
