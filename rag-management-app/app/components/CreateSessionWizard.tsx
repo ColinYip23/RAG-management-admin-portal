@@ -2,6 +2,7 @@
 
 import CollapsibleSection from "./CollapsibleSection"
 import { useCreateSession } from "../hooks/useCreateSession"
+import { useNotebookSelection } from "../hooks/useNotebookSelection"
 
 export default function CreateSessionWizard() {
   const {
@@ -15,6 +16,14 @@ export default function CreateSessionWizard() {
     setInboxName,
     createSession,
   } = useCreateSession()
+
+  const {
+    notebooks,
+    selected,
+    selectedNames,
+    toggle,
+    loading: loadingNotebooks,
+  } = useNotebookSelection(inboxName)
 
   return (
     <CollapsibleSection
@@ -42,8 +51,34 @@ export default function CreateSessionWizard() {
         onChange={(e) => setInboxName(e.target.value)}
       />
 
+      {/* Notebook Tagging */}
+      <div className="border p-3 rounded space-y-3">
+        <h3 className="font-semibold">📚 Notebook Tagging</h3>
+
+        {!inboxName ? (
+          <p className="text-sm opacity-60">
+            Enter a department to load notebooks
+          </p>
+        ) : loadingNotebooks ? (
+          <p className="text-sm opacity-60">Loading notebooks…</p>
+        ) : notebooks.length === 0 ? (
+          <p className="text-sm opacity-60">No notebooks available</p>
+        ) : (
+          notebooks.map((nb) => (
+            <label key={nb.id} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={selected.includes(nb.id)}
+                onChange={() => toggle(nb.id)}
+              />
+              <span>{nb.title}</span>
+            </label>
+          ))
+        )}
+      </div>
+
       <button
-        onClick={createSession}
+        onClick={() => createSession(selectedNames)}
         disabled={creatingSession}
         className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
       >

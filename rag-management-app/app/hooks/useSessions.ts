@@ -46,6 +46,6 @@ export function useSessions() {
     sessions,
     loading,
     refresh: fetchSessions,
-    setSessions, // optional, useful for optimistic updates
+    setSessions, 
   }
 }

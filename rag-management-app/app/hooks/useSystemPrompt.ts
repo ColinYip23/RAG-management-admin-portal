@@ -13,7 +13,7 @@ export function useSystemPrompt(tenant: string) {
 
     const loadPrompt = async () => {
       const { data } = await supabase
-        .from("system_prompts")
+        .from("system prompts")
         .select("prompt")
         .eq("tenant", tenant)
         .single()
@@ -29,7 +29,7 @@ export function useSystemPrompt(tenant: string) {
     setSaving(true)
     try {
       await supabase
-        .from("system_prompts")
+        .from("system prompts")
         .upsert(
           { tenant, prompt },
           { onConflict: "tenant" }
