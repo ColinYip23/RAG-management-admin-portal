@@ -49,7 +49,7 @@ export default function SessionTable({
               className="border p-2 text-left"
               style={{ borderColor: "var(--border)" }}
             >
-              Account / WhatsApp
+              Department / WhatsApp
             </th>
             <th
               className="border p-2 text-center"
@@ -94,7 +94,7 @@ export default function SessionTable({
                   className="border p-2"
                   style={{ borderColor: "var(--border)" }}
                 >
-                  <div className="font-medium">{s.Account}</div>
+                  <div className="font-medium">{s.Department}</div>
                   <div className="text-sm opacity-70">
                     {s.WhatsApp}
                   </div>
