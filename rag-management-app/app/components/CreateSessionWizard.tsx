@@ -136,6 +136,7 @@ export default function CreateSessionWizard() {
 
         <ol className="text-sm list-decimal list-inside">
           <li>Open WhatsApp</li>
+          <li>Press the Dot Menu</li>
           <li>Go to Linked Devices</li>
           <li>Tap Link a Device</li>
           <li>Scan the QR</li>
