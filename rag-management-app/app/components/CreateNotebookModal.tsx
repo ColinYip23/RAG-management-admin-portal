@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import * as XLSX from "xlsx"
 
 const DEPARTMENTS = [
   "property management",
@@ -25,6 +26,79 @@ export default function CreateNotebookModal({
   const [isGlobal, setIsGlobal] = useState(false)
   const [department, setDepartment] = useState("")
   const [saving, setSaving] = useState(false)
+
+  const [xlsxFile, setXlsxFile] = useState<File | null>(null)
+  const [xlsxRows, setXlsxRows] = useState<any[]>([])
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  function handleXlsxFile(file: File) {
+    if (!file.name.endsWith(".xlsx")) {
+      alert("Please upload a .xlsx file")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer)
+      const workbook = XLSX.read(data, { type: "array" })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json(sheet)
+
+      if (!json.length) {
+        alert("XLSX file is empty")
+        return
+      }
+
+      const headers = Object.keys(json[0] as any).map((h) =>
+        h.toLowerCase()
+      )
+
+      if (!headers.includes("question") || !headers.includes("answer")) {
+        alert("XLSX must contain 'question' and 'answer' columns")
+        return
+      }
+
+      setXlsxFile(file)
+      setXlsxRows(json)
+    }
+
+    reader.readAsArrayBuffer(file)
+  }
+
+
+  async function sendXlsxToWebhook() {
+    if (!xlsxRows.length) return
+
+    const payload = {
+      notebook_title: title,
+      department,
+      type,
+      rows: xlsxRows.map((row: any) => ({
+        question: row.question,
+        answer: row.answer,
+      })),
+    }
+
+    const res = await fetch(
+      "https://flow2.dlabs.com.my/webhook/table_entry",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    )
+
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(
+        "Failed to ingest XLSX into KB: " + text
+      )
+    }
+  }
+
+
 
   async function createNotebook() {
     if (!title.trim()) {
@@ -77,6 +151,11 @@ export default function CreateNotebookModal({
 
       if (error) {
         throw new Error(error.message)
+      }
+
+      // Send XLSX rows to n8n (if any)
+      if (xlsxRows.length > 0) {
+        await sendXlsxToWebhook()
       }
 
       // 3️⃣ Success UI
@@ -146,6 +225,42 @@ export default function CreateNotebookModal({
             ))}
           </select>
         </div>
+
+        {/* XLSX Import */}
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDrop={(e) => {
+            e.preventDefault()
+            handleXlsxFile(e.dataTransfer.files[0])
+          }}
+          onDragOver={(e) => e.preventDefault()}
+          className="border-2 border-dashed rounded p-4 text-center text-sm cursor-pointer bg-gray-50"
+        >
+
+          <p className="font-medium">
+            Drag & drop XLSX (Question / Answer)
+          </p>
+          <p className="text-gray-500">
+            or click to browse
+          </p>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            className="hidden"
+            onChange={(e) =>
+              e.target.files && handleXlsxFile(e.target.files[0])
+            }
+          />
+
+        </div>
+
+        {xlsxFile && (
+          <p className="text-sm text-green-600">
+            📄 {xlsxFile.name} loaded ({xlsxRows.length} rows)
+          </p>
+        )}
 
         {/* Global */}
         <label className="flex items-center gap-2">
