@@ -119,7 +119,9 @@ export default function CreateNotebookModal({
     setSaving(true)
 
     try {
-      // 1️⃣ Call n8n webhook to create KB + DB
+      /* ========================= */
+      /* 1️⃣ CREATE TABLE (n8n) */
+      /* ========================= */
       const webhookRes = await fetch(
         "https://flow2.dlabs.com.my/webhook/table_creation",
         {
@@ -140,7 +142,9 @@ export default function CreateNotebookModal({
         )
       }
 
-      // 2️⃣ Insert notebook metadata into Supabase
+      /* ========================= */
+      /* 2️⃣ INSERT NOTEBOOK META */
+      /* ========================= */
       const { error } = await supabase.from("notebooks").insert({
         title,
         type,
@@ -153,12 +157,16 @@ export default function CreateNotebookModal({
         throw new Error(error.message)
       }
 
-      // Send XLSX rows to n8n (if any)
+      /* ========================= */
+      /* 3️⃣ INGEST XLSX (OPTIONAL) */
+      /* ========================= */
       if (xlsxRows.length > 0) {
         await sendXlsxToWebhook()
       }
 
-      // 3️⃣ Success UI
+      /* ========================= */
+      /* 4️⃣ SUCCESS */
+      /* ========================= */
       alert("Notebook created successfully ✅")
       onCreated()
       onClose()
@@ -168,6 +176,7 @@ export default function CreateNotebookModal({
       setSaving(false)
     }
   }
+
 
 
   return (
