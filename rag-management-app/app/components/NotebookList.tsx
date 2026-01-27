@@ -52,7 +52,7 @@ export default function NotebookList() {
               <th className="border p-2 text-left">Department</th>
               <th className="border p-2 text-left">Scope</th>
               <th className="border p-2 text-left">Type</th>
-              <th className="border p-2 text-left">Actions</th>
+              <th className="border p-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -68,7 +68,7 @@ export default function NotebookList() {
                 <td className="border p-2">
                   {nb.type ?? "—"}
                 </td>
-                <td className="border p-2">
+                <td className="border p-2 space-x-2 text-center">
                   <button
                     className="px-2 py-1 border rounded"
                     style={{ borderColor: "var(--border)" }}
