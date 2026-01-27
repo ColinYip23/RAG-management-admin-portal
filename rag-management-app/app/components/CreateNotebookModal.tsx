@@ -22,7 +22,7 @@ export default function CreateNotebookModal({
 }) {
   const [title, setTitle] = useState("")
   const [systemPrompt, setSystemPrompt] = useState("")
-  const [type, setType] = useState("") // 👈 NEW
+  const [type, setType] = useState("") 
   const [isGlobal, setIsGlobal] = useState(false)
   const [department, setDepartment] = useState("")
   const [saving, setSaving] = useState(false)

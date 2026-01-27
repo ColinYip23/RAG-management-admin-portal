@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import CreateNotebookModal from "./CreateNotebookModal"
+import EditNotebookModal from "./EditNotebookModal"
 
 type Notebook = {
   id: string
@@ -16,6 +17,12 @@ type Notebook = {
 export default function NotebookList() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([])
   const [showCreate, setShowCreate] = useState(false)
+  const [editingNotebook, setEditingNotebook] = useState<{
+    title: string
+    department: string
+    type: string
+  } | null>(null)
+
 
   async function loadNotebooks() {
     const { data } = await supabase
@@ -72,6 +79,16 @@ export default function NotebookList() {
                   <button
                     className="px-2 py-1 border rounded"
                     style={{ borderColor: "var(--border)" }}
+                    disabled={!nb.department || !nb.type}
+                    onClick={() => {
+                      if (!nb.department || !nb.type) return
+
+                      setEditingNotebook({
+                        title: nb.title,
+                        department: nb.department,
+                        type: nb.type,
+                      })
+                    }}
                   >
                     Edit
                   </button>
@@ -93,6 +110,12 @@ export default function NotebookList() {
         <CreateNotebookModal
           onClose={() => setShowCreate(false)}
           onCreated={loadNotebooks}
+        />
+      )}
+      {editingNotebook && (
+        <EditNotebookModal
+          notebook={editingNotebook}
+          onClose={() => setEditingNotebook(null)}
         />
       )}
     </div>
