@@ -51,6 +51,8 @@ export default function NotebookList() {
               <th className="border p-2 text-left">Title</th>
               <th className="border p-2 text-left">Department</th>
               <th className="border p-2 text-left">Scope</th>
+              <th className="border p-2 text-left">Type</th>
+              <th className="border p-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -62,6 +64,24 @@ export default function NotebookList() {
                 </td>
                 <td className="border p-2">
                   {nb.is_global ? "🌍 Global" : "🏢 Department"}
+                </td>
+                <td className="border p-2">
+                  {nb.type ?? "—"}
+                </td>
+                <td className="border p-2">
+                  <button
+                    className="px-2 py-1 border rounded"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    className="px-2 py-1 border rounded text-red-600"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
