@@ -25,6 +25,14 @@ export default function CreateSessionWizard() {
     loading: loadingNotebooks,
   } = useNotebookSelection(inboxName)
 
+  const DEPARTMENTS = [
+    "Findoc",
+    "Property",
+    "Property Management",
+    "Education",
+  ]
+
+
   return (
     <CollapsibleSection
       title="Create Session Wizard"
@@ -41,15 +49,28 @@ export default function CreateSessionWizard() {
         onChange={(e) => setWaNumber(e.target.value)}
       />
 
-      <input
-        className="border p-2 w-full
-                  text-gray-900 placeholder-gray-400
-                  dark:text-gray-100 dark:placeholder-gray-500"
+      <select
+        className="
+          border p-2 w-full
+          text-gray-900
+          dark:text-gray-300
+        "
         style={{ borderColor: "var(--border)" }}
-        placeholder="Department Name"
         value={inboxName}
         onChange={(e) => setInboxName(e.target.value)}
-      />
+      >
+        <option value="" disabled>
+          Select Department
+        </option>
+
+        {DEPARTMENTS.map((dept) => (
+          <option key={dept} value={dept}>
+            {dept}
+          </option>
+        ))}
+      </select>
+
+
 
       {/* Notebook Tagging */}
       <div className="border p-3 rounded space-y-3">
