@@ -15,6 +15,41 @@ export default function SessionTable({
   onRefresh,
   onEdit,
 }: Props) {
+
+  async function handleDelete(session: WahaSession) {
+    const confirmed = confirm(
+      `Delete WhatsApp session for ${session.WhatsApp}?`
+    )
+    if (!confirmed) return
+
+    try {
+      const res = await fetch(
+        "https://flow2.dlabs.com.my/webhook/delete_session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            whatsapp: session.WhatsApp,
+            department: session.Department,
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || "Failed to delete session")
+      }
+
+      // refresh list after successful deletion
+      onRefresh()
+    } catch (err: any) {
+      alert(err.message || "Delete failed")
+    }
+  }
+
+
   return (
     <section
       className="border p-4 rounded space-y-4"
@@ -128,7 +163,7 @@ export default function SessionTable({
                   </a>
 
                   <button
-                    className="px-2 py-1 border rounded"
+                    className="px-2 py-1 border rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ borderColor: "var(--border)" }}
                     onClick={() => onEdit(s)}
                   >
@@ -136,11 +171,13 @@ export default function SessionTable({
                   </button>
 
                   <button
-                    className="px-2 py-1 border rounded text-red-600"
+                    className="px-2 py-1 border rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ borderColor: "var(--border)" }}
+                    onClick={() => handleDelete(s)}
                   >
                     Delete
                   </button>
+
                 </td>
               </tr>
             ))
