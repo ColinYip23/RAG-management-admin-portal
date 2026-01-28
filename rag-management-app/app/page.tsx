@@ -13,6 +13,8 @@ import type { WahaSession } from "@/app/types/WahaSession"
 import WarmingUpPanel from "./components/WarmingUpPanel"
 import KnowledgeBasePanel from "./components/KnowledgeBasePanel"
 import Modal from "./components/Modal"
+import { useProfile } from "./hooks/useProfile"
+
 
 export default function AdminDashboardPage() {
   const [editingSession, setEditingSession] = useState<WahaSession | null>(null)
@@ -47,12 +49,14 @@ export default function AdminDashboardPage() {
     signup,
   } = useAuth()
 
+  const { profile, loading: profileLoading } = useProfile(user?.email)
+
   const {
     sessions,
     loading: sessionsLoading,
     refresh: fetchSessions,
     setSessions,
-  } = useSessions()
+  } = useSessions(profile)
 
   if (authLoading) {
     return (
@@ -77,6 +81,7 @@ export default function AdminDashboardPage() {
       />
     )
   }
+
 
   return (
     <main className="min-h-screen p-6 space-y-10">
