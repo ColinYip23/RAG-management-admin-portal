@@ -12,6 +12,9 @@ type Props = {
   setPassword: (v: string) => void
   setAuthMode: (m: AuthMode) => void
   onSubmit: () => void
+  department: string
+  setDepartment: (v: string) => void
+  departments: string[]
 }
 
 export default function AuthScreen({
@@ -24,6 +27,9 @@ export default function AuthScreen({
   setPassword,
   setAuthMode,
   onSubmit,
+  department,
+  setDepartment,
+  departments,
 }: Props) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -56,6 +62,29 @@ export default function AuthScreen({
           style={{ borderColor: "var(--border)" }}
         />
 
+        {authMode === "signup" && (
+          <select
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="border px-3 py-2 rounded text-sm"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <option value="" style={{ backgroundColor: "white", color: "black" }}>
+              Select Department
+            </option>
+
+            {departments.map((dept) => (
+              <option
+                key={dept}
+                value={dept}
+                style={{ backgroundColor: "white", color: "black" }}
+              >
+                {dept}
+              </option>
+            ))}
+          </select>
+        )}
+
         <button
           disabled={authBusy}
           onClick={onSubmit}
@@ -70,6 +99,8 @@ export default function AuthScreen({
             ? "Login"
             : "Sign Up"}
         </button>
+
+        
 
         {authError && (
           <p className="text-xs text-red-600 text-center">

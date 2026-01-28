@@ -47,6 +47,9 @@ export default function AdminDashboardPage() {
     setAuthBusy,
     login,
     signup,
+    department,
+    setDepartment,
+    DEPARTMENTS,
   } = useAuth()
 
   const { profile, loading: profileLoading } = useProfile(user?.email)
@@ -78,6 +81,9 @@ export default function AdminDashboardPage() {
         setPassword={setPassword}
         setAuthMode={setAuthMode}
         onSubmit={authMode === "login" ? login : signup}
+        department={department}
+        setDepartment={setDepartment}
+        departments={DEPARTMENTS}
       />
     )
   }

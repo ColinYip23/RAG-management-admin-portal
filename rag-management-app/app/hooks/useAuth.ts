@@ -14,6 +14,14 @@ export function useAuth() {
   const [authError, setAuthError] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
   const [authMode, setAuthMode] = useState<AuthMode>("login")
+  const [department, setDepartment] = useState("")
+
+  const DEPARTMENTS = [
+    "property",
+    "property management",
+    "findoc",
+    "education",
+  ]
 
   // Load session + listen to auth changes
   useEffect(() => {
@@ -58,6 +66,13 @@ export function useAuth() {
   const signup = async () => {
     if (authBusy) return
 
+    if (!department) {
+      setAuthError("Please select a department.")
+      setAuthBusy(false)
+      return
+    }
+
+
     setAuthError(null)
     setAuthBusy(true)
 
@@ -83,7 +98,13 @@ export function useAuth() {
     const res = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          department, // ✅ THIS is what your trigger reads
+        },
+      },
     })
+
 
     setAuthBusy(false)
 
@@ -115,5 +136,9 @@ export function useAuth() {
     // actions
     login,
     signup,
+
+    department,
+    setDepartment,
+    DEPARTMENTS,
   }
 }
