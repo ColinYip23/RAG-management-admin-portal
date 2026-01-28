@@ -12,10 +12,12 @@ import EditSessionPanel from "./components/EditSessionPanel"
 import type { WahaSession } from "@/app/types/WahaSession"
 import WarmingUpPanel from "./components/WarmingUpPanel"
 import KnowledgeBasePanel from "./components/KnowledgeBasePanel"
+import Modal from "./components/Modal"
 
 export default function AdminDashboardPage() {
   const [editingSession, setEditingSession] = useState<WahaSession | null>(null)
   const [theme, setTheme] = useState<"light" | "dark">("dark")
+  const [createOpen, setCreateOpen] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -103,8 +105,8 @@ export default function AdminDashboardPage() {
         loading={sessionsLoading}
         onRefresh={fetchSessions}
         onEdit={setEditingSession}
+        onCreate={() => setCreateOpen(true)}
       />
-
 
       {/* ========================= */}
       {/* EDIT SESSION */}
@@ -124,12 +126,6 @@ export default function AdminDashboardPage() {
 
 
       {/* ========================= */}
-      {/* CREATE SESSION */}
-      {/* ========================= */}
-      <CreateSessionWizard />
-
-
-      {/* ========================= */}
       {/* KNOWLEDGE BASE */}
       {/* ========================= */}
       <KnowledgeBasePanel />
@@ -139,6 +135,15 @@ export default function AdminDashboardPage() {
       {/* WARMING UP NUMBERS */}
       {/* ========================= */}
       <WarmingUpPanel sessions={sessions} />
+
+      <Modal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="🧙 Create WhatsApp Session"
+      >
+        <CreateSessionWizard />
+      </Modal>
+
 
     </main>
   )

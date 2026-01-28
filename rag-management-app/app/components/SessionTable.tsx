@@ -7,6 +7,7 @@ type Props = {
   loading: boolean
   onRefresh: () => void
   onEdit: (session: WahaSession) => void
+  onCreate: () => void   
 }
 
 export default function SessionTable({
@@ -14,6 +15,7 @@ export default function SessionTable({
   loading,
   onRefresh,
   onEdit,
+  onCreate,
 }: Props) {
 
   async function handleDelete(session: WahaSession) {
@@ -184,6 +186,20 @@ export default function SessionTable({
           )}
         </tbody>
       </table>
+      {/* Footer */}
+      <div className="flex justify-center pt-4">
+        <button
+          onClick={onCreate}
+          className="
+            px-4 py-2
+            bg-blue-600 text-white rounded
+            hover:bg-blue-700
+            transition-colors
+          "
+        >
+          Create Session
+        </button>
+      </div>
     </section>
   )
 }

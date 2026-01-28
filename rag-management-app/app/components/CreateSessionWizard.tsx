@@ -1,6 +1,5 @@
 "use client"
 
-import CollapsibleSection from "./CollapsibleSection"
 import { useCreateSession } from "../hooks/useCreateSession"
 import { useNotebookSelection } from "../hooks/useNotebookSelection"
 
@@ -32,30 +31,29 @@ export default function CreateSessionWizard() {
     "Education",
   ]
 
-
   return (
-    <CollapsibleSection
-      title="Create Session Wizard"
-      icon="🧙"
-      defaultOpen={false}
-    >
+    <div className="space-y-4 bg-white text-black">
+
+      {/* WhatsApp Number */}
       <input
-        className="border p-2 w-full
-                  text-gray-900 placeholder-gray-400
-                  dark:text-gray-100 dark:placeholder-gray-500"
-        style={{ borderColor: "var(--border)" }}
+        className="
+          w-full p-2
+          border border-gray-300 rounded
+          bg-white text-black
+          placeholder-gray-500
+        "
         placeholder="WhatsApp Number"
         value={waNumber}
         onChange={(e) => setWaNumber(e.target.value)}
       />
 
+      {/* Department Select */}
       <select
         className="
-          border p-2 w-full
-          text-gray-900
-          dark:text-gray-300
+          w-full p-2
+          border border-gray-300 rounded
+          bg-white text-black
         "
-        style={{ borderColor: "var(--border)" }}
         value={inboxName}
         onChange={(e) => setInboxName(e.target.value)}
       >
@@ -70,23 +68,28 @@ export default function CreateSessionWizard() {
         ))}
       </select>
 
-
-
       {/* Notebook Tagging */}
-      <div className="border p-3 rounded space-y-3">
+      <div className="border border-gray-300 rounded p-3 space-y-3">
         <h3 className="font-semibold">📚 Notebook Tagging</h3>
 
         {!inboxName ? (
-          <p className="text-sm opacity-60">
+          <p className="text-sm text-gray-600">
             Enter a department to load notebooks
           </p>
         ) : loadingNotebooks ? (
-          <p className="text-sm opacity-60">Loading notebooks…</p>
+          <p className="text-sm text-gray-600">
+            Loading notebooks…
+          </p>
         ) : notebooks.length === 0 ? (
-          <p className="text-sm opacity-60">No notebooks available</p>
+          <p className="text-sm text-gray-600">
+            No notebooks available
+          </p>
         ) : (
           notebooks.map((nb) => (
-            <label key={nb.id} className="flex items-center gap-2">
+            <label
+              key={nb.id}
+              className="flex items-center gap-2 text-black"
+            >
               <input
                 type="checkbox"
                 checked={selected.includes(nb.id)}
@@ -98,30 +101,34 @@ export default function CreateSessionWizard() {
         )}
       </div>
 
+      {/* Create Button */}
       <button
         onClick={() => createSession(selectedNames)}
         disabled={creatingSession}
         className="
-          px-4 py-2 
-          bg-blue-600 
-          text-white 
-          rounded 
-          hover:bg-blue-700 
+          px-4 py-2 rounded
+          bg-blue-600 text-white
+          hover:bg-blue-700
           disabled:opacity-50
-          disabled:hover:bg-blue-600
           transition-colors
         "
       >
         {creatingSession ? "Creating session…" : "Create Session"}
       </button>
 
+      {/* Error */}
       {createError && (
-        <p className="text-sm text-red-600">{createError}</p>
+        <p className="text-sm text-red-600">
+          {createError}
+        </p>
       )}
 
-      <div className="border p-3 rounded space-y-2">
+      {/* QR Section */}
+      <div className="border border-gray-300 rounded p-3 space-y-2">
         <div className="flex justify-between">
-          <h3 className="font-semibold">Session Connection</h3>
+          <h3 className="font-semibold">
+            Session Connection
+          </h3>
           {secondsLeft !== null && (
             <span className="text-sm text-red-600">
               ⏱ QR expires in {secondsLeft}s
@@ -129,7 +136,7 @@ export default function CreateSessionWizard() {
           )}
         </div>
 
-        <div className="border h-64 flex items-center justify-center">
+        <div className="border border-gray-300 h-64 flex items-center justify-center">
           {qrValue ? (
             <img
               src={`https://quickchart.io/qr?text=${encodeURIComponent(
@@ -139,11 +146,13 @@ export default function CreateSessionWizard() {
               className="rounded shadow"
             />
           ) : (
-            <span className="text-sm opacity-60">QR CODE PLACEHOLDER</span>
+            <span className="text-sm text-gray-500">
+              QR CODE PLACEHOLDER
+            </span>
           )}
         </div>
 
-        <ol className="text-sm list-decimal list-inside">
+        <ol className="text-sm list-decimal list-inside text-black">
           <li>Open WhatsApp</li>
           <li>Press the Dot Menu</li>
           <li>Go to Linked Devices</li>
@@ -151,6 +160,7 @@ export default function CreateSessionWizard() {
           <li>Scan the QR</li>
         </ol>
       </div>
-    </CollapsibleSection>
+
+    </div>
   )
 }
