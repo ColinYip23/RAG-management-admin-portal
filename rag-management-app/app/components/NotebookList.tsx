@@ -118,7 +118,15 @@ export default function NotebookList() {
         <h3 className="font-semibold">Notebooks Listing</h3>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+          className="
+            px-3 py-1 
+            bg-blue-600 
+            text-white 
+            rounded 
+            text-sm
+            hover:bg-blue-700
+            transition-colors
+          "
         >
           + Create Notebook
         </button>

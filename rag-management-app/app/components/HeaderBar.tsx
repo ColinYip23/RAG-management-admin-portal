@@ -31,7 +31,15 @@ export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          className="flex items-center gap-2 px-3 py-1 border rounded text-sm"
+          className="
+            flex items-center gap-2 
+            px-3 py-1 
+            border rounded 
+            text-sm
+            hover:bg-gray-100
+            dark:hover:bg-gray-800
+            transition-colors
+          "
           style={{ borderColor: "var(--border)" }}
         >
           {theme === "light" ? "🌙 Dark" : "☀️ Light"}
@@ -40,7 +48,14 @@ export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
         {user ? (
           <button
             onClick={() => supabase.auth.signOut()}
-            className="px-3 py-1 border rounded text-sm"
+            className="
+              px-3 py-1 
+              border rounded 
+              text-sm
+              hover:bg-gray-100
+              dark:hover:bg-gray-800
+              transition-colors
+            "
             style={{ borderColor: "var(--border)" }}
           >
             Logout

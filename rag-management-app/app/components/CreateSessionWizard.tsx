@@ -101,7 +101,16 @@ export default function CreateSessionWizard() {
       <button
         onClick={() => createSession(selectedNames)}
         disabled={creatingSession}
-        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        className="
+          px-4 py-2 
+          bg-blue-600 
+          text-white 
+          rounded 
+          hover:bg-blue-700 
+          disabled:opacity-50
+          disabled:hover:bg-blue-600
+          transition-colors
+        "
       >
         {creatingSession ? "Creating session…" : "Create Session"}
       </button>
