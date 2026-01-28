@@ -3,6 +3,7 @@
 import { useState, useRef } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import * as XLSX from "xlsx"
+import type { UserProfile } from "@/app/hooks/useProfile"
 
 const DEPARTMENTS = [
   "property management",
@@ -13,23 +14,35 @@ const DEPARTMENTS = [
 
 const NOTEBOOK_TYPES = ["QnA", "Article"]
 
+type CreateNotebookModalProps = {
+  onClose: () => void
+  onCreated: () => void
+  userProfile: UserProfile
+}
+
 export default function CreateNotebookModal({
   onClose,
   onCreated,
-}: {
-  onClose: () => void
-  onCreated: () => void
-}) {
+  userProfile,
+}: CreateNotebookModalProps) {
   const [title, setTitle] = useState("")
   const [systemPrompt, setSystemPrompt] = useState("")
   const [type, setType] = useState("") 
   const [isGlobal, setIsGlobal] = useState(false)
-  const [department, setDepartment] = useState("")
+  const [department, setDepartment] = useState(
+    userProfile.role === "user" ? userProfile.department || "" : ""
+  )
   const [saving, setSaving] = useState(false)
 
   const [xlsxFile, setXlsxFile] = useState<File | null>(null)
   const [xlsxRows, setXlsxRows] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Both users and admins can create global notebooks
+  const canCreateGlobal = true
+  
+  // Check if user can choose department
+  const canChooseDepartment = userProfile.role === "admin"
 
   function handleXlsxFile(file: File) {
     if (!file.name.endsWith(".xlsx")) {
@@ -111,10 +124,17 @@ export default function CreateNotebookModal({
       return
     }
 
-    if (!department) {
+    // For users, department is forced to their own
+    const finalDepartment = userProfile.role === "user" 
+      ? userProfile.department 
+      : department
+
+    if (!finalDepartment) {
       alert("Please select a department")
       return
     }
+
+    // Both users and admins can create global notebooks (no validation needed)
 
     setSaving(true)
 
@@ -129,7 +149,7 @@ export default function CreateNotebookModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             notebook_title: title,
-            department,
+            department: finalDepartment,
           }),
         }
       )
@@ -150,7 +170,7 @@ export default function CreateNotebookModal({
         type,
         system_prompt: systemPrompt,
         is_global: isGlobal,
-        department,
+        department: finalDepartment,
       })
 
       if (error) {
@@ -183,6 +203,15 @@ export default function CreateNotebookModal({
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white text-gray-900 p-5 rounded w-full max-w-md space-y-4">
         <h3 className="text-lg font-semibold">Create Notebook</h3>
+
+        {/* Show user role info */}
+        <div className="text-xs p-2 bg-blue-50 border border-blue-200 rounded">
+          {userProfile.role === "admin" ? (
+            <p>👑 <strong>Admin:</strong> You can create notebooks for any department and make them global</p>
+          ) : (
+            <p>👤 <strong>User:</strong> You can create notebooks for your department ({userProfile.department}) and make them global</p>
+          )}
+        </div>
 
         {/* Title */}
         <input
@@ -218,21 +247,34 @@ export default function CreateNotebookModal({
           onChange={(e) => setSystemPrompt(e.target.value)}
         />
 
-        {/* Department */}
+        {/* Department - Only for Admin */}
         <div>
-          <label className="text-sm font-medium">Department</label>
-          <select
-            className="border p-2 w-full rounded bg-white text-gray-900 border-gray-300"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-          >
-            <option value="">Select department</option>
-            {DEPARTMENTS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+          <label className="text-sm font-medium">
+            Department
+            {!canChooseDepartment && (
+              <span className="text-xs opacity-60 ml-2">(Fixed to your department)</span>
+            )}
+          </label>
+          {canChooseDepartment ? (
+            <select
+              className="border p-2 w-full rounded bg-white text-gray-900 border-gray-300"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+            >
+              <option value="">Select department</option>
+              {DEPARTMENTS.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              className="border p-2 w-full rounded bg-gray-100 text-gray-900 border-gray-300"
+              value={userProfile.department || "No department"}
+              disabled
+            />
+          )}
         </div>
 
         {/* XLSX Import */}
@@ -271,14 +313,16 @@ export default function CreateNotebookModal({
           </p>
         )}
 
-        {/* Global */}
+        {/* Global - Available for all users */}
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={isGlobal}
             onChange={(e) => setIsGlobal(e.target.checked)}
           />
-          <span>Global (visible to all departments)</span>
+          <span>
+            Global (visible to all departments)
+          </span>
         </label>
 
         {/* Actions */}
