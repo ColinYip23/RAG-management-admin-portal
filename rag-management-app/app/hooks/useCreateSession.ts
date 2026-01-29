@@ -40,7 +40,7 @@ export function useCreateSession() {
       setQrValue(null)
 
       const res = await fetch(
-        "https://flow.dlabs.com.my/webhook/session creation",
+        "https://flow2.dlabs.com.my/webhook/session creation",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

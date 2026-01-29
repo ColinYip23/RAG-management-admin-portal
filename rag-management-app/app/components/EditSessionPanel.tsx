@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { WahaSession } from "@/app/types/WahaSession"
-import { useSystemPrompt } from "@/app/hooks/useSystemPrompt"
 import { useNotebookTagging } from "@/app/hooks/useNotebookTagging"
 
 type Props = {
@@ -18,13 +17,6 @@ export default function EditSessionPanel({
   onSessionUpdate,
 }: Props) {
   const [updatingAgent, setUpdatingAgent] = useState(false)
-
-  const {
-    prompt,
-    setPrompt,
-    savePrompt,
-    saving: savingPrompt,
-  } = useSystemPrompt(session.WhatsApp)
 
   const {
     notebooks,
@@ -77,25 +69,6 @@ export default function EditSessionPanel({
           />
           <span>{session.Enabled ? "Enabled" : "Disabled"}</span>
         </label>
-
-        <textarea
-          className="w-full border p-2 rounded"
-          rows={4}
-          placeholder="System prompt..."
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-        />
-
-        <button
-          disabled={savingPrompt}
-          onClick={async () => {
-            await savePrompt()
-            alert("System prompt saved ✅")
-          }}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          {savingPrompt ? "Saving…" : "Save System Prompt"}
-        </button>
       </div>
 
       {/* Notebook Tagging */}
