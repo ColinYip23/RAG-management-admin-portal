@@ -12,6 +12,7 @@ type Notebook = {
   department: string | null
   is_global: boolean
   type: string | null
+  system_prompt?: string | null
   created_at: string
 }
 
@@ -19,11 +20,7 @@ export default function NotebookList() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([])
   const [filteredNotebooks, setFilteredNotebooks] = useState<Notebook[]>([])
   const [showCreate, setShowCreate] = useState(false)
-  const [editingNotebook, setEditingNotebook] = useState<{
-    title: string
-    department: string
-    type: string
-  } | null>(null)
+  const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Get current user
@@ -240,11 +237,7 @@ export default function NotebookList() {
                       onClick={() => {
                         if (!nb.department || !nb.type || !userCanEdit) return
 
-                        setEditingNotebook({
-                          title: nb.title,
-                          department: nb.department,
-                          type: nb.type,
-                        })
+                        setEditingNotebook(nb)
                       }}
                       title={
                         !userCanEdit 
@@ -287,6 +280,7 @@ export default function NotebookList() {
         <EditNotebookModal
           notebook={editingNotebook}
           onClose={() => setEditingNotebook(null)}
+          onUpdate={loadNotebooks}
         />
       )}
     </div>
