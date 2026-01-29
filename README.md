@@ -227,28 +227,6 @@ npm run start
 3. Test thoroughly
 4. Submit a pull request
 
-## 📄 License
-
-[Your License Here]
-
-## 🆘 Troubleshooting
-
-### "Cannot find module '@/app/types/WahaSession'"
-Ensure the file exists at `app/types/WahaSession.ts`
-
-### Notebook not appearing after creation
-Check that the department and visibility settings match your user permissions
-
-### Excel import fails
-Verify the .xlsx file has "question" and "answer" columns with proper formatting
-
-### Supabase connection errors
-Check that environment variables are correctly set in `.env.local`
-
-## 📞 Support
-
-For issues and questions, please open an issue on the repository.
-
 ---
 
 **Made with ❤️ for RAG Management**
