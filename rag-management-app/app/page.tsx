@@ -152,7 +152,10 @@ export default function AdminDashboardPage() {
         onClose={() => setCreateOpen(false)}
         title="🧙 Create WhatsApp Session"
       >
-        <CreateSessionWizard />
+        {profile && (
+          <CreateSessionWizard userProfile={profile} />
+        )}
+
       </Modal>
 
 

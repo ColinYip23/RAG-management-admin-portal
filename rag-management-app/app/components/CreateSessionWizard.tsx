@@ -1,9 +1,17 @@
 "use client"
 
+import { useEffect } from "react"
 import { useCreateSession } from "../hooks/useCreateSession"
 import { useNotebookSelection } from "../hooks/useNotebookSelection"
+import type { UserProfile } from "../hooks/useProfile"
 
-export default function CreateSessionWizard() {
+export default function CreateSessionWizard({
+  userProfile,
+}: {
+  userProfile: UserProfile
+}){
+  const canChooseDepartment = userProfile.role === "admin"
+
   const {
     waNumber,
     inboxName,
@@ -31,6 +39,12 @@ export default function CreateSessionWizard() {
     "education",
   ]
 
+  useEffect(() => {
+    if (userProfile.role === "user" && userProfile.department) {
+      setInboxName(userProfile.department)
+    }
+  }, [userProfile, setInboxName])
+
   return (
     <div className="space-y-4 bg-white text-black">
 
@@ -48,25 +62,41 @@ export default function CreateSessionWizard() {
       />
 
       {/* Department Select */}
-      <select
-        className="
-          w-full p-2
-          border border-gray-300 rounded
-          bg-white text-black
-        "
-        value={inboxName}
-        onChange={(e) => setInboxName(e.target.value)}
-      >
-        <option value="" disabled>
-          Select Department
-        </option>
+      <div>
+        <label className="text-sm font-medium">
+          Department
+          {!canChooseDepartment && (
+            <span className="text-xs opacity-60 ml-2">
+              (Fixed to your department)
+            </span>
+          )}
+        </label>
 
-        {DEPARTMENTS.map((dept) => (
-          <option key={dept} value={dept}>
-            {dept}
-          </option>
-        ))}
-      </select>
+        {canChooseDepartment ? (
+          <select
+            className="border p-2 w-full rounded"
+            value={inboxName}
+            onChange={(e) => setInboxName(e.target.value)}
+          >
+            <option value="" disabled>
+              Select Department
+            </option>
+
+            {DEPARTMENTS.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            className="border p-2 w-full rounded bg-gray-100"
+            value={userProfile.department || "No department"}
+            disabled
+          />
+        )}
+      </div>
+
 
       {/* Notebook Tagging */}
       <div className="border border-gray-300 rounded p-3 space-y-3">
