@@ -25,10 +25,10 @@ export default function CreateSessionWizard() {
   } = useNotebookSelection(inboxName)
 
   const DEPARTMENTS = [
-    "Findoc",
-    "Property",
-    "Property Management",
-    "Education",
+    "findoc",
+    "property",
+    "property management",
+    "education",
   ]
 
   return (
