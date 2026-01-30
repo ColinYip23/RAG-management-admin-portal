@@ -3,6 +3,8 @@
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/app/hooks/useAuth"
 import Link from "next/link"
+import { useProfile } from "../hooks/useProfile"
+import { useEffect } from "react"
 
 type HeaderBarProps = {
   theme: "light" | "dark"
@@ -22,6 +24,11 @@ export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
     login,
   } = useAuth()
 
+  const { profile, loading: profileLoading } = useProfile(user?.email)
+  const profileReady = !!user && !profileLoading
+
+  const isAdmin = profileReady && profile?.role === "admin"
+
   return (
     <div className="flex justify-between items-center">
       <div className="text-sm opacity-70">
@@ -29,22 +36,24 @@ export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Link href="/tenant-mapping">
-          <button
-            className="
-              flex items-center gap-2
-              px-3 py-1
-              border rounded
-              text-sm
-              hover:bg-gray-100
-              dark:hover:bg-gray-800
-              transition-colors
-            "
-            style={{ borderColor: "var(--border)" }}
-          >
-            🗺️ Tenant Mapping
-          </button>
-        </Link>
+        {profileReady && isAdmin && (
+          <Link href="/tenant-mapping">
+            <button
+              className="
+                flex items-center gap-2
+                px-3 py-1
+                border rounded
+                text-sm
+                hover:bg-gray-100
+                dark:hover:bg-gray-800
+                transition-colors
+              "
+              style={{ borderColor: "var(--border)" }}
+            >
+              🗺️ Tenant Mapping
+            </button>
+          </Link>
+        )}
 
 
         {/* Theme toggle */}
