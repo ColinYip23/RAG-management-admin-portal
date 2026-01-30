@@ -55,6 +55,24 @@ export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
           </Link>
         )}
 
+        {profileReady && isAdmin && (
+          <Link href="/user-management">
+            <button
+              className="
+                flex items-center gap-2
+                px-3 py-1
+                border rounded
+                text-sm
+                hover:bg-gray-100
+                dark:hover:bg-gray-800
+                transition-colors
+              "
+              style={{ borderColor: "var(--border)" }}
+            >
+              👤 User Management
+            </button>
+          </Link>
+        )}
 
         {/* Theme toggle */}
         <button
