@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import CollapsibleSection from "./CollapsibleSection"
 import type { WahaSession } from "@/app/types/WahaSession"
+import { supabase } from "@/lib/supabaseClient"
 
 type Props = {
   sessions: WahaSession[]
@@ -10,6 +11,21 @@ type Props = {
 
 export default function WarmingUpPanel({ sessions }: Props) {
   const [warmingUpNumbers, setWarmingUpNumbers] = useState<string[]>([])
+
+  /* =========================
+     Sync state from DB truth
+     start + pause => ticked
+     stop => unticked
+     ========================= */
+  useEffect(() => {
+    const activeNumbers = sessions
+      .filter(
+        (s) => s.warmup === "start" || s.warmup === "pause"
+      )
+      .map((s) => s.WhatsApp)
+
+    setWarmingUpNumbers(activeNumbers)
+  }, [sessions])
 
   const toggleWarmupNumber = (number: string) => {
     setWarmingUpNumbers((prev) =>
@@ -19,26 +35,24 @@ export default function WarmingUpPanel({ sessions }: Props) {
     )
   }
 
-  const triggerWarmup = async (action: "start" | "pause" | "stop") => {
-    try {
-      const res = await fetch(
-        "https://flow2.dlabs.com.my/webhook-test/warmup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action,
-            numbers: warmingUpNumbers,
-          }),
-        }
-      )
+  const triggerWarmup = async (
+    action: "start" | "pause" | "stop"
+  ) => {
+    if (warmingUpNumbers.length === 0) return
 
-      if (!res.ok) throw new Error("Failed to trigger warm-up")
+    try {
+      const { error } = await supabase
+        .from("waha_sessions")
+        .update({ warmup: action })
+        .in("WhatsApp", warmingUpNumbers)
+
+      if (error) throw error
 
       alert(`Warm-up ${action}ed successfully ✅`)
+      // UI will resync automatically via sessions prop
     } catch (err) {
       console.error(err)
-      alert("Failed to trigger warm-up")
+      alert("Failed to update warm-up status")
     }
   }
 
@@ -55,19 +69,33 @@ export default function WarmingUpPanel({ sessions }: Props) {
             No WhatsApp sessions available
           </p>
         ) : (
-          sessions.map((s) => (
-            <label
-              key={s.id}
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={warmingUpNumbers.includes(s.WhatsApp)}
-                onChange={() => toggleWarmupNumber(s.WhatsApp)}
-              />
-              <span className="text-sm">{s.WhatsApp}</span>
-            </label>
-          ))
+          sessions.map((s) => {
+            const isStarted = s.warmup === "start"
+            const isActive =
+              s.warmup === "start" || s.warmup === "pause"
+
+            return (
+              <label
+                key={s.id}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    isActive ||
+                    warmingUpNumbers.includes(s.WhatsApp)
+                  }
+                  disabled={isStarted}
+                  onChange={() =>
+                    toggleWarmupNumber(s.WhatsApp)
+                  }
+                />
+                <span className="text-sm">
+                  {s.WhatsApp}
+                </span>
+              </label>
+            )
+          })
         )}
       </div>
 
