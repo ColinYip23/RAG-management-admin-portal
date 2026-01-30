@@ -2,19 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
-
-export type WahaSession = {
-  id: number
-  Department: string
-  WhatsApp: string
-  Status: string
-  Enabled: boolean
-  modified_at: string
-  created_at: string
-  inbox_id: number
-  email: string
-  noteboks: Array<string>
-}
+import type { WahaSession } from "@/app/types/WahaSession"
 
 type UserProfile = {
   role: string
