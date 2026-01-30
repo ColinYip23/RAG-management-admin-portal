@@ -33,6 +33,8 @@ export default function EditNotebookModal({
 
   const [xlsxRows, setXlsxRows] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [addingEntries, setAddingEntries] = useState(false)
+  
 
   /* ========================= */
   /* FETCH EXISTING ENTRIES */
@@ -103,7 +105,7 @@ export default function EditNotebookModal({
   }
 
   /* ========================= */
-  /* XLSX HANDLING (REUSED) */
+  /* XLSX HANDLING */
   /* ========================= */
 
   function handleXlsxFile(file: File) {
@@ -113,41 +115,122 @@ export default function EditNotebookModal({
     }
 
     const reader = new FileReader()
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer)
-      const workbook = XLSX.read(data, { type: "array" })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const json = XLSX.utils.sheet_to_json(sheet)
 
-      setXlsxRows(json)
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(
+          e.target?.result as ArrayBuffer
+        )
+
+        const workbook = XLSX.read(data, { type: "array" })
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        // 1️⃣ Read as raw rows (never empty unless sheet is empty)
+        const rows = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: "",
+          blankrows: false,
+        }) as string[][]
+
+        if (rows.length === 0) {
+          alert("XLSX sheet is empty")
+          return
+        }
+
+        // 2️⃣ Find header row dynamically
+        const headerRowIndex = rows.findIndex((row) =>
+          row.some(
+            (cell) =>
+              typeof cell === "string" &&
+              cell.toLowerCase().trim() === "question"
+          )
+        )
+
+        if (headerRowIndex === -1) {
+          alert("Could not find 'question' column in XLSX")
+          return
+        }
+
+        const headers = rows[headerRowIndex].map((h) =>
+          String(h).toLowerCase().trim()
+        )
+
+        const questionIndex = headers.indexOf("question")
+        const answerIndex = headers.indexOf("answer")
+
+        if (questionIndex === -1 || answerIndex === -1) {
+          alert(
+            "XLSX must contain 'question' and 'answer' columns"
+          )
+          return
+        }
+
+        // 3️⃣ Convert rows → objects safely
+        const parsedRows = rows
+          .slice(headerRowIndex + 1)
+          .map((row) => ({
+            question: String(row[questionIndex] || "").trim(),
+            answer: String(row[answerIndex] || "").trim(),
+          }))
+          .filter(
+            (r) =>
+              r.question.length > 0 &&
+              r.answer.length > 0
+          )
+
+        if (parsedRows.length === 0) {
+          alert("No valid rows found in XLSX")
+          return
+        }
+
+        setXlsxRows(parsedRows)
+      } catch (err) {
+        console.error("XLSX parse error:", err)
+        alert("Failed to read XLSX file")
+      }
     }
 
     reader.readAsArrayBuffer(file)
   }
 
+
   async function appendEntries() {
-    if (!xlsxRows.length) return
+    if (!xlsxRows.length || addingEntries) return
 
-    await fetch(
-      "https://flow2.dlabs.com.my/webhook/table_entry",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notebook_title: notebook.title,
-          department: notebook.department,
-          type: notebook.type,
-          rows: xlsxRows.map((r: any) => ({
-            question: r.question,
-            answer: r.answer,
-          })),
-        }),
+    setAddingEntries(true)
+
+    try {
+      const res = await fetch(
+        "https://flow2.dlabs.com.my/webhook/table_entry",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            notebook_title: notebook.title,
+            department: notebook.department,
+            type: notebook.type,
+            rows: xlsxRows.map((r: any) => ({
+              question: r.question,
+              answer: r.answer,
+            })),
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error("Failed to add entries")
       }
-    )
 
-    setXlsxRows([])
-    fetchEntries()
+      setXlsxRows([])
+      await fetchEntries()
+    } catch (err) {
+      console.error(err)
+      alert("❌ Failed to add entries")
+    } finally {
+      setAddingEntries(false)
+    }
   }
+
 
   /* ========================= */
   /* UI */
@@ -250,9 +333,17 @@ export default function EditNotebookModal({
               </p>
               <button
                 onClick={appendEntries}
-                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                disabled={addingEntries}
+                className="
+                  bg-blue-600 text-white px-3 py-1 rounded text-sm
+                  hover:bg-blue-700
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
               >
-                Add {xlsxRows.length} entries
+                {addingEntries
+                  ? "Adding entries…"
+                  : `Add ${xlsxRows.length} entries`}
               </button>
             </div>
           )}
