@@ -107,57 +107,129 @@ export default function TenantMappingPage() {
         </Link>
         </div>
 
+
+      {/* ADD NEW MAPPING */}
+      <details className="border rounded p-4">
+        <summary className="cursor-pointer font-medium">
+          ➕ Add a new tenant → Knowledge Base mapping
+        </summary>
+
+        <div className="mt-4 space-y-3">
+          <input
+            className="border p-2 rounded w-full"
+            placeholder="WhatsApp Number"
+            value={newWhatsapp}
+            onChange={(e) => setNewWhatsapp(e.target.value)}
+          />
+
+          <select
+            className="border p-2 rounded w-full"
+            value={newSource}
+            onChange={(e) => setNewSource(e.target.value)}
+          >
+            <option value="">Select Knowledge Base</option>
+            {Object.values(SOURCE_MAP).map((name) => (
+              <option key={name} style={{ backgroundColor: "white", color: "black" }}>{name}</option>
+            ))}
+          </select>
+
+          <button
+            onClick={createMapping}
+            className="bg-blue-600 text-white px-4 py-1 rounded"
+          >
+            Create Mapping
+          </button>
+        </div>
+      </details>
+
       {/* EXISTING MAPPINGS */}
-      {tenants.length === 0 ? (
+        {tenants.length === 0 ? (
         <p className="opacity-60">No tenants found.</p>
-      ) : (
-        tenants.map((tenant) => {
-          const currentSource =
-            SOURCE_MAP[tenant["RAG source"]] ||
-            tenant["RAG source"]
+        ) : (
+        <div className="border rounded overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+            <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                <th className="border p-2 text-left">
+                    WhatsApp
+                </th>
+                <th className="border p-2 text-left">
+                    Knowledge Base
+                </th>
+                <th className="border p-2 text-center">
+                    Action
+                </th>
+                </tr>
+            </thead>
 
-          return (
-            <details
-              key={tenant.id}
-              className="border rounded p-4"
-            >
-              <summary className="cursor-pointer font-medium">
-                📱 {tenant["WhatsApp number"]} — Current:{" "}
-                {currentSource}
-              </summary>
+            <tbody>
+                {tenants.map((tenant) => {
+                const currentSource =
+                    SOURCE_MAP[tenant["RAG source"]] ||
+                    tenant["RAG source"]
 
-              <div className="mt-4 space-y-3">
-                <select
-                  className="border p-2 rounded w-full"
-                  defaultValue={currentSource}
-                  onChange={(e) =>
-                    updateMapping(tenant.id, e.target.value)
-                  }
-                >
-                  {Object.values(SOURCE_MAP).map((name) => (
-                    <option key={name} style={{ backgroundColor: "white", color: "black" }}>{name}</option>
-                  ))}
-                </select>
+                return (
+                    <tr key={tenant.id}>
+                    {/* WhatsApp */}
+                    <td className="border p-2 font-medium">
+                        {tenant["WhatsApp number"]}
+                    </td>
 
-                <button
-                  onClick={() => {
-                    if (
-                      confirm(
-                        "This will permanently delete this mapping. Continue?"
-                      )
-                    ) {
-                      deleteMapping(tenant.id)
-                    }
-                  }}
-                  className="bg-red-600 text-white px-4 py-1 rounded"
-                >
-                  🗑️ Delete Mapping
-                </button>
-              </div>
-            </details>
-          )
-        })
-      )}
+                    {/* Mapping dropdown */}
+                    <td className="border p-2">
+                        <select
+                        className="border p-2 rounded w-full"
+                        value={currentSource}
+                        onChange={(e) =>
+                            updateMapping(tenant.id, e.target.value)
+                        }
+                        >
+                        {Object.values(SOURCE_MAP).map((name) => (
+                            <option
+                            key={name}
+                            style={{
+                                backgroundColor: "white",
+                                color: "black",
+                            }}
+                            >
+                            {name}
+                            </option>
+                        ))}
+                        </select>
+                    </td>
+
+                    {/* Delete */}
+                    <td className="border p-2 text-center">
+                        <button
+                        onClick={() => {
+                            if (
+                            confirm(
+                                "This will permanently delete this mapping. Continue?"
+                            )
+                            ) {
+                            deleteMapping(tenant.id)
+                            }
+                        }}
+                        className="
+                            bg-red-600
+                            text-white
+                            px-3 py-1
+                            rounded
+                            text-sm
+                            hover:bg-red-700
+                        "
+                        >
+                        🗑️ Delete
+                        </button>
+                    </td>
+                    </tr>
+                )
+                })}
+            </tbody>
+            </table>
+        </div>
+        )}
+
     </main>
   )
 }

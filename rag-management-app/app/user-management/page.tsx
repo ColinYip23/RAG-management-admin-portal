@@ -118,6 +118,7 @@ export default function UserManagementPage() {
 
                 <td className="border p-2">
                   <select
+                    className="border p-2 rounded w-full"
                     value={p.role}
                     disabled={savingId === p.id}
                     onChange={(e) =>
@@ -134,6 +135,7 @@ export default function UserManagementPage() {
 
                 <td className="border p-2">
                   <select
+                    className="border p-2 rounded w-full"
                     value={p.department ?? ""}
                     disabled={savingId === p.id}
                     onChange={(e) =>
