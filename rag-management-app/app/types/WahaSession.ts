@@ -9,5 +9,5 @@ export type WahaSession = {
   inbox_id: number
   email: string
   noteboks: Array<string>
-  warmup: string
+  warmup: "start" | "pause" | "stop"
 }
