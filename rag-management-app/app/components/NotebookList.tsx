@@ -39,13 +39,13 @@ export default function NotebookList() {
 
 
   async function loadNotebooks() {
-    console.log("📚 Loading notebooks...")
+    
     const { data } = await supabase
       .from("notebooks")
       .select("*")
       .order("created_at", { ascending: false })
 
-    console.log("📚 All notebooks:", data)
+    
     setNotebooks(data ?? [])
   }
 
@@ -56,14 +56,10 @@ export default function NotebookList() {
       return
     }
 
-    console.log("🔍 Filtering notebooks for:", {
-      role: profile.role,
-      department: profile.department,
-    })
+    
 
     if (profile.role === "admin") {
       // Admin can see ALL notebooks
-      console.log("👑 Admin: Showing all notebooks")
       setFilteredNotebooks(notebooks)
     } else {
       // User can only see:
@@ -75,10 +71,6 @@ export default function NotebookList() {
         
         return isGlobal || isOwnDepartment
       })
-
-      console.log(`👤 User: Showing ${filtered.length}/${notebooks.length} notebooks`)
-      console.log("  - Department:", profile.department)
-      console.log("  - Filtered notebooks:", filtered.map(n => n.title))
       
       setFilteredNotebooks(filtered)
     }
