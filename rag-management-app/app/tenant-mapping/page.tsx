@@ -107,41 +107,6 @@ export default function TenantMappingPage() {
         </Link>
         </div>
 
-
-      {/* ADD NEW MAPPING */}
-      <details className="border rounded p-4">
-        <summary className="cursor-pointer font-medium">
-          ➕ Add a new tenant → Knowledge Base mapping
-        </summary>
-
-        <div className="mt-4 space-y-3">
-          <input
-            className="border p-2 rounded w-full"
-            placeholder="WhatsApp Number"
-            value={newWhatsapp}
-            onChange={(e) => setNewWhatsapp(e.target.value)}
-          />
-
-          <select
-            className="border p-2 rounded w-full"
-            value={newSource}
-            onChange={(e) => setNewSource(e.target.value)}
-          >
-            <option value="">Select Knowledge Base</option>
-            {Object.values(SOURCE_MAP).map((name) => (
-              <option key={name}>{name}</option>
-            ))}
-          </select>
-
-          <button
-            onClick={createMapping}
-            className="bg-blue-600 text-white px-4 py-1 rounded"
-          >
-            Create Mapping
-          </button>
-        </div>
-      </details>
-
       {/* EXISTING MAPPINGS */}
       {tenants.length === 0 ? (
         <p className="opacity-60">No tenants found.</p>
@@ -170,7 +135,7 @@ export default function TenantMappingPage() {
                   }
                 >
                   {Object.values(SOURCE_MAP).map((name) => (
-                    <option key={name}>{name}</option>
+                    <option key={name} style={{ backgroundColor: "white", color: "black" }}>{name}</option>
                   ))}
                 </select>
 
