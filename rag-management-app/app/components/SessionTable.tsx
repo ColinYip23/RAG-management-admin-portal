@@ -1,6 +1,6 @@
 "use client"
 
-import { WahaSession } from "../hooks/useSessions"
+import type { WahaSession } from "@/app/types/WahaSession"
 
 type Props = {
   sessions: WahaSession[]
@@ -157,7 +157,7 @@ export default function SessionTable({
                   style={{ borderColor: "var(--border)" }}
                 >
                   <a
-                    href={`https://cem.dlabs.com.my/app/accounts/1/inboxes/${s.id}/conversations`}
+                    href={`https://cem.dlabs.com.my/app/accounts/1/inbox-view`}
                     className="underline text-blue-600"
                     target="_blank"
                   >
