@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/app/hooks/useAuth"
+import Link from "next/link"
 
 type HeaderBarProps = {
   theme: "light" | "dark"
@@ -28,23 +29,22 @@ export default function HeaderBar({ theme, setTheme }: HeaderBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={() =>
-            window.open("https://tenant-mapping.streamlit.app/", "_blank")
-          }
-          className="
-            flex items-center gap-2
-            px-3 py-1
-            border rounded
-            text-sm
-            hover:bg-gray-100
-            dark:hover:bg-gray-800
-            transition-colors
-          "
-          style={{ borderColor: "var(--border)" }}
-        >
-          🗺️ Tenant Mapping
-        </button>
+        <Link href="/tenant-mapping">
+          <button
+            className="
+              flex items-center gap-2
+              px-3 py-1
+              border rounded
+              text-sm
+              hover:bg-gray-100
+              dark:hover:bg-gray-800
+              transition-colors
+            "
+            style={{ borderColor: "var(--border)" }}
+          >
+            🗺️ Tenant Mapping
+          </button>
+        </Link>
 
 
         {/* Theme toggle */}
