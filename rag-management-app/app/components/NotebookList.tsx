@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient"
 import { useProfile } from "@/app/hooks/useProfile"
 import CreateNotebookModal from "./CreateNotebookModal"
 import EditNotebookModal from "./EditNotebookModal"
+import LearningOpportunitiesModal from "./LearningOpportunitiesModal"
 
 type Notebook = {
   id: string
@@ -22,6 +23,7 @@ export default function NotebookList() {
   const [showCreate, setShowCreate] = useState(false)
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [learningNotebook, setLearningNotebook] = useState<Notebook | null>(null)
 
   // Get current user
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -261,6 +263,15 @@ export default function NotebookList() {
                     >
                       {deletingId === nb.id ? "Deleting..." : "Delete"}
                     </button>
+
+                    <button
+                      className="px-2 py-1 border rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                      style={{ borderColor: "var(--border)" }}
+                      onClick={() => setLearningNotebook(nb)}
+                    >
+                      Learn
+                    </button>
+
                   </td>
                 </tr>
               )
@@ -281,6 +292,14 @@ export default function NotebookList() {
           notebook={editingNotebook}
           onClose={() => setEditingNotebook(null)}
           onUpdate={loadNotebooks}
+        />
+      )}
+      {learningNotebook && (
+        <LearningOpportunitiesModal
+          notebookTitle={learningNotebook.title}
+          department={learningNotebook.department}
+          type={learningNotebook.type}
+          onClose={() => setLearningNotebook(null)}
         />
       )}
     </div>
