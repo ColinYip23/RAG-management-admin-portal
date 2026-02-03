@@ -36,10 +36,8 @@ export default function CreateNotebookModal({
 
   const [xlsxFile, setXlsxFile] = useState<File | null>(null)
   const [xlsxRows, setXlsxRows] = useState<any[]>([])
+  const [articleLink, setArticleLink] = useState("")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  // Both users and admins can create global notebooks
-  const canCreateGlobal = true
   
   // Check if user can choose department
   const canChooseDepartment = userProfile.role === "admin"
@@ -86,6 +84,7 @@ export default function CreateNotebookModal({
       notebook_title: title,
       department,
       type,
+      article_link: type === "Article" ? articleLink : undefined,
       rows: xlsxRows.map((row: any) => ({
         question: row.question,
         answer: row.answer,
@@ -131,6 +130,12 @@ export default function CreateNotebookModal({
 
     if (!finalDepartment) {
       alert("Please select a department")
+      return
+    }
+
+    // Validate article link when Article type is selected and XLSX is imported
+    if (type === "Article" && xlsxRows.length > 0 && !articleLink.trim()) {
+      alert("Please enter an article link")
       return
     }
 
@@ -311,6 +316,21 @@ export default function CreateNotebookModal({
           <p className="text-sm text-green-600">
             📄 {xlsxFile.name} loaded ({xlsxRows.length} rows)
           </p>
+        )}
+
+        {/* Article Link - Required when Article type is selected and document is imported */}
+        {type === "Article" && xlsxFile && (
+          <div>
+            <label className="text-sm font-medium">
+              Article Link <span className="text-red-500">*</span>
+            </label>
+            <input
+              className="border p-2 w-full rounded bg-white text-gray-900 border-gray-300"
+              placeholder="https://example.com/article"
+              value={articleLink}
+              onChange={(e) => setArticleLink(e.target.value)}
+            />
+          </div>
         )}
 
         {/* Global - Available for all users */}
