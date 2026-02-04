@@ -268,12 +268,18 @@ export default function EditNotebookModal({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            old_id: entry.id,
+            old_id: entry.id,                     // ✅ identity
             notebook_title: notebook.title,
             department: notebook.department,
             type: notebook.type,
-            question: editQuestion,
-            answer: editAnswer,
+
+            // 🔴 OLD (pre-modified)
+            old_question: entry.question,
+            old_answer: entry.answer,
+
+            // 🟢 NEW (edited)
+            new_question: editQuestion,
+            new_answer: editAnswer,
           }),
         }
       )
