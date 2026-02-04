@@ -135,7 +135,7 @@ export default function EditNotebookModal({
         const workbook = XLSX.read(data, { type: "array" })
         const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
-        // 1️⃣ Read as raw rows (never empty unless sheet is empty)
+        // Read as raw rows (never empty unless sheet is empty)
         const rows = XLSX.utils.sheet_to_json(sheet, {
           header: 1,
           defval: "",
@@ -147,7 +147,7 @@ export default function EditNotebookModal({
           return
         }
 
-        // 2️⃣ Find header row dynamically
+        // Find header row dynamically
         const headerRowIndex = rows.findIndex((row) =>
           row.some(
             (cell) =>
@@ -175,7 +175,7 @@ export default function EditNotebookModal({
           return
         }
 
-        // 3️⃣ Convert rows → objects safely
+        // Convert rows → objects safely
         const parsedRows = rows
           .slice(headerRowIndex + 1)
           .map((row) => ({
@@ -268,16 +268,16 @@ export default function EditNotebookModal({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            old_id: entry.id,                     // ✅ identity
+            old_id: entry.id,                     //identity
             notebook_title: notebook.title,
             department: notebook.department,
             type: notebook.type,
 
-            // 🔴 OLD (pre-modified)
+            // OLD (pre-modified)
             old_question: entry.question,
             old_answer: entry.answer,
 
-            // 🟢 NEW (edited)
+            // NEW (edited)
             new_question: editQuestion,
             new_answer: editAnswer,
           }),
