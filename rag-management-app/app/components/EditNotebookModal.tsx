@@ -15,6 +15,12 @@ type NotebookForEdit = {
   created_at?: string
 }
 
+type EntryRow = {
+  id: string
+  question: string
+  answer: string
+}
+
 export default function EditNotebookModal({
   notebook,
   onClose,
@@ -24,9 +30,7 @@ export default function EditNotebookModal({
   onClose: () => void
   onUpdate?: () => void
 }) {
-  const [entries, setEntries] = useState<
-    { question: string; answer: string }[]
-  >([])
+  const [entries, setEntries] = useState<EntryRow[]>([])
   const [loading, setLoading] = useState(true)
   const [systemPrompt, setSystemPrompt] = useState(notebook.system_prompt || "")
   const [savingPrompt, setSavingPrompt] = useState(false)
@@ -34,7 +38,11 @@ export default function EditNotebookModal({
   const [xlsxRows, setXlsxRows] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [addingEntries, setAddingEntries] = useState(false)
-  
+
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editQuestion, setEditQuestion] = useState("")
+  const [editAnswer, setEditAnswer] = useState("")
+  const [savingRow, setSavingRow] = useState(false)
 
   /* ========================= */
   /* FETCH EXISTING ENTRIES */
@@ -56,13 +64,14 @@ export default function EditNotebookModal({
     )
 
     const data = await res.json()
-    const cleaned = Array.isArray(data)
-        ? data.filter(
-            (r: any) =>
-                typeof r.question === "string" &&
-                r.question.trim() !== ""
-            )
-        : []
+    const cleaned: EntryRow[] = Array.isArray(data)
+      ? data.filter(
+          (r: any) =>
+            r.id &&
+            typeof r.question === "string" &&
+            r.question.trim()
+        )
+      : []
 
     setEntries(cleaned)
 
@@ -71,7 +80,8 @@ export default function EditNotebookModal({
 
   useEffect(() => {
     fetchEntries()
-  }, [])
+  }, [notebook.id])
+
 
   /* ========================= */
   /* SYSTEM PROMPT UPDATE */
@@ -231,6 +241,91 @@ export default function EditNotebookModal({
     }
   }
 
+  function startEdit(entry: EntryRow) {
+    setEditingId(entry.id)
+    setEditQuestion(entry.question)
+    setEditAnswer(entry.answer)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditQuestion("")
+    setEditAnswer("")
+  }
+
+  async function saveEdit(entry: EntryRow) {
+    if (!editQuestion.trim() || !editAnswer.trim()) {
+      alert("Question and answer cannot be empty")
+      return
+    }
+
+    setSavingRow(true)
+
+    try {
+      const res = await fetch(
+        "https://flow2.dlabs.com.my/webhook/replace_qna",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            old_id: entry.id,
+            notebook_title: notebook.title,
+            department: notebook.department,
+            type: notebook.type,
+            question: editQuestion,
+            answer: editAnswer,
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error("Replace failed")
+      }
+
+      await fetchEntries()
+      cancelEdit()
+    } catch (err) {
+      console.error(err)
+      alert("❌ Failed to save edited entry")
+    } finally {
+      setSavingRow(false)
+    }
+  }
+
+  async function deleteEntry(entry: EntryRow) {
+    const confirmed = confirm(
+      `Delete this QnA?\n\n"${entry.question}"`
+    )
+    if (!confirmed) return
+
+    try {
+      const res = await fetch(
+        "https://flow2.dlabs.com.my/webhook/delete_qna",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            old_id: entry.id,
+            notebook_title: notebook.title,
+            department: notebook.department,
+            type: notebook.type,
+            question: entry.question,
+            answer: entry.answer,
+          }),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error("Delete failed")
+      }
+
+      await fetchEntries()
+    } catch (err) {
+      console.error(err)
+      alert("❌ Failed to delete entry")
+    }
+  }
+
 
   /* ========================= */
   /* UI */
@@ -282,15 +377,85 @@ export default function EditNotebookModal({
                   <tr>
                     <th className="p-2 text-left bg-gray-100">Question</th>
                     <th className="p-2 text-left bg-gray-100">Answer</th>
+                    <th className="p-2 text-right bg-gray-100">Action</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {entries.map((e, idx) => (
-                    <tr key={idx} className="border-t hover:bg-gray-50">
-                      <td className="p-2">{e.question}</td>
-                      <td className="p-2">{e.answer}</td>
-                    </tr>
-                  ))}
+                  {entries.map((e) => {
+                    const isEditing = editingId === e.id
+
+                    return (
+                      <tr key={e.id} className="border-t">
+                        {/* QUESTION */}
+                        <td className="p-2 align-top">
+                          {isEditing ? (
+                            <textarea
+                              className="border p-1 w-full text-sm"
+                              value={editQuestion}
+                              onChange={(ev) =>
+                                setEditQuestion(ev.target.value)
+                              }
+                            />
+                          ) : (
+                            e.question
+                          )}
+                        </td>
+
+                        {/* ANSWER */}
+                        <td className="p-2 align-top">
+                          {isEditing ? (
+                            <textarea
+                              className="border p-1 w-full text-sm"
+                              rows={3}
+                              value={editAnswer}
+                              onChange={(ev) =>
+                                setEditAnswer(ev.target.value)
+                              }
+                            />
+                          ) : (
+                            e.answer
+                          )}
+                        </td>
+
+                        {/* ACTION */}
+                        <td className="p-2 text-right whitespace-nowrap">
+                          {isEditing ? (
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => saveEdit(e)}
+                                disabled={savingRow}
+                                className="bg-green-600 text-white px-2 py-1 text-xs rounded"
+                              >
+                                {savingRow ? "Saving…" : "Save"}
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="border px-2 py-1 text-xs rounded"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => startEdit(e)}
+                                className="border px-2 py-1 text-xs rounded hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => deleteEntry(e)}
+                                className="border px-2 py-1 text-xs rounded text-red-600 hover:bg-red-50"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
