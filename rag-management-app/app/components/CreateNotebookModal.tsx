@@ -53,7 +53,10 @@ export default function CreateNotebookModal({
       const data = new Uint8Array(e.target?.result as ArrayBuffer)
       const workbook = XLSX.read(data, { type: "array" })
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const json = XLSX.utils.sheet_to_json(sheet)
+      const json = XLSX.utils.sheet_to_json(sheet, {
+        defval: null,   // IMPORTANT: keeps empty cells as null
+        raw: false,
+      })
 
       if (!json.length) {
         alert("XLSX file is empty")
@@ -80,15 +83,48 @@ export default function CreateNotebookModal({
   async function sendXlsxToWebhook() {
     if (!xlsxRows.length) return
 
+    const cleanedRows = xlsxRows
+      .map((row: any) => {
+        const question =
+          row.question ??
+          row.Question ??
+          row.QUESTION ??
+          null
+
+        const answer =
+          row.answer ??
+          row.Answer ??
+          row.ANSWER ??
+          null
+
+        if (
+          typeof question !== "string" ||
+          typeof answer !== "string"
+        ) {
+          return null
+        }
+
+        if (!question.trim() || !answer.trim()) {
+          return null
+        }
+
+        return {
+          question: question.trim(),
+          answer: answer.trim(),
+        }
+      })
+      .filter(Boolean)
+
+    if (cleanedRows.length === 0) {
+      throw new Error("No valid Q&A rows found in XLSX")
+    }
+
     const payload = {
       notebook_title: title,
       department,
       type,
       article_link: type === "Article" ? articleLink : undefined,
-      rows: xlsxRows.map((row: any) => ({
-        question: row.question,
-        answer: row.answer,
-      })),
+      rows: cleanedRows,
     }
 
     const res = await fetch(
@@ -104,9 +140,7 @@ export default function CreateNotebookModal({
 
     if (!res.ok) {
       const text = await res.text()
-      throw new Error(
-        "Failed to ingest XLSX into KB: " + text
-      )
+      throw new Error("Failed to ingest XLSX into KB: " + text)
     }
   }
 
