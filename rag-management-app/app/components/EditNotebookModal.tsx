@@ -345,27 +345,6 @@ export default function EditNotebookModal({
           Edit Notebook — {notebook.title}
         </h3>
 
-        {/* SYSTEM PROMPT SECTION */}
-        <div className="border border-gray-300 rounded p-4 bg-gray-50">
-          <h4 className="text-sm font-semibold text-black mb-2">System Prompt</h4>
-          <textarea
-            className="border p-2 w-full rounded bg-white text-black border-gray-300 text-sm"
-            rows={4}
-            placeholder="Enter system prompt for this notebook..."
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-          />
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={saveSystemPrompt}
-              disabled={savingPrompt}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50 hover:bg-green-700"
-            >
-              {savingPrompt ? "Saving..." : "Save System Prompt"}
-            </button>
-          </div>
-        </div>
-
         {/* ENTRIES TABLE */}
         <div className="border border-gray-300 rounded p-4">
           <h4 className="text-sm font-semibold text-black mb-2">Notebook Entries</h4>
