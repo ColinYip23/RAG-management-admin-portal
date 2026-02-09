@@ -18,6 +18,11 @@ export default function EditSessionPanel({
 }: Props) {
   const [updatingAgent, setUpdatingAgent] = useState(false)
 
+  const [systemPrompt, setSystemPrompt] = useState(
+    session.system_prompt || ""
+  )
+  const [savingPrompt, setSavingPrompt] = useState(false)
+
   const {
     notebooks,
     selected,
@@ -70,6 +75,61 @@ export default function EditSessionPanel({
           <span>{session.Enabled ? "Enabled" : "Disabled"}</span>
         </label>
       </div>
+
+      {/* System Prompt */}
+      <div className="border p-3 rounded space-y-3">
+        <h3 className="font-semibold">🧠 System Prompt</h3>
+
+        <textarea
+          className="w-full border rounded p-2 text-sm"
+          rows={5}
+          placeholder="Enter system prompt for this WhatsApp session..."
+          value={systemPrompt}
+          onChange={(e) => setSystemPrompt(e.target.value)}
+        />
+
+        <div className="flex justify-end">
+          <button
+            disabled={savingPrompt}
+            onClick={async () => {
+              if (!systemPrompt.trim()) {
+                alert("❌ System prompt cannot be empty")
+                return
+              }
+
+              setSavingPrompt(true)
+
+              try {
+                const { error } = await supabase
+                  .from("waha_sessions")
+                  .update({
+                    system_prompt: systemPrompt.trim(),
+                    modified_at: new Date().toISOString(),
+                  })
+                  .eq("id", session.id)
+
+                if (error) throw error
+
+                onSessionUpdate({
+                  ...session,
+                  system_prompt: systemPrompt.trim(),
+                })
+
+                alert("✅ System prompt saved")
+              } catch (err: any) {
+                console.error(err)
+                alert(`❌ ${err.message || "Failed to save system prompt"}`)
+              } finally {
+                setSavingPrompt(false)
+              }
+            }}
+            className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50 hover:bg-green-700"
+          >
+            {savingPrompt ? "Saving..." : "Save System Prompt"}
+          </button>
+        </div>
+      </div>
+
 
       {/* Notebook Tagging */}
       <div className="border p-3 rounded space-y-3">

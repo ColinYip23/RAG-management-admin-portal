@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useCreateSession } from "../hooks/useCreateSession"
 import { useNotebookSelection } from "../hooks/useNotebookSelection"
 import type { UserProfile } from "../hooks/useProfile"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function CreateSessionWizard({
   userProfile,
@@ -11,6 +12,9 @@ export default function CreateSessionWizard({
   userProfile: UserProfile
 }){
   const canChooseDepartment = userProfile.role === "admin"
+
+  const [systemPrompt, setSystemPrompt] = useState("")
+  const [savingPrompt, setSavingPrompt] = useState(false)
 
   const {
     waNumber,
@@ -38,6 +42,41 @@ export default function CreateSessionWizard({
     "property management",
     "education",
   ]
+
+  async function saveSystemPrompt() {
+    if (!waNumber) {
+      alert("❌ WhatsApp number is required")
+      return
+    }
+
+    if (!systemPrompt.trim()) {
+      alert("❌ System prompt cannot be empty")
+      return
+    }
+
+    setSavingPrompt(true)
+
+    try {
+      const { error } = await supabase
+        .from("waha_sessions")
+        .update({
+          system_prompt: systemPrompt.trim(),
+          modified_at: new Date().toISOString(),
+        })
+        .eq("WhatsApp", waNumber)
+
+      if (error) throw error
+
+      alert("✅ System prompt saved for WhatsApp session")
+    } catch (err: any) {
+      console.error("Error saving system prompt:", err)
+      alert(`❌ Error: ${err.message || "Failed to save system prompt"}`)
+    } finally {
+      setSavingPrompt(false)
+    }
+  }
+
+
 
   useEffect(() => {
     if (userProfile.role === "user" && userProfile.department) {
@@ -129,6 +168,27 @@ export default function CreateSessionWizard({
             </label>
           ))
         )}
+      </div>
+
+      {/* SYSTEM PROMPT SECTION */}
+      <div className="border border-gray-300 rounded p-4 bg-gray-50">
+        <h4 className="text-sm font-semibold text-black mb-2">System Prompt</h4>
+        <textarea
+          className="border p-2 w-full rounded bg-white text-black border-gray-300 text-sm"
+          rows={4}
+          placeholder="Enter system prompt for this notebook..."
+          value={systemPrompt}
+          onChange={(e) => setSystemPrompt(e.target.value)}
+        />
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={saveSystemPrompt}
+            disabled={savingPrompt}
+            className="bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50 hover:bg-green-700"
+          >
+            {savingPrompt ? "Saving..." : "Save System Prompt"}
+          </button>
+        </div>
       </div>
 
       {/* Create Button */}

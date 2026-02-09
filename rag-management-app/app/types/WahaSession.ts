@@ -10,4 +10,5 @@ export type WahaSession = {
   email: string
   noteboks: Array<string>
   warmup: "start" | "pause" | "stop"
+  system_prompt?: string | null
 }
