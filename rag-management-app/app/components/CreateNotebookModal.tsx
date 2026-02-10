@@ -277,15 +277,6 @@ export default function CreateNotebookModal({
           </select>
         </div>
 
-        {/* System Prompt */}
-        <textarea
-          className="border p-2 w-full rounded bg-white text-gray-900 border-gray-300"
-          rows={4}
-          placeholder="System prompt"
-          value={systemPrompt}
-          onChange={(e) => setSystemPrompt(e.target.value)}
-        />
-
         {/* Department - Only for Admin */}
         <div>
           <label className="text-sm font-medium">
