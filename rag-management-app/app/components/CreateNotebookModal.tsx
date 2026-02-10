@@ -152,6 +152,11 @@ export default function CreateNotebookModal({
       return
     }
 
+    if (title.includes(" ")) {
+      alert("Notebook title cannot contain spaces. Use underscores (_) instead.")
+      return
+    }
+
     if (!type) {
       alert("Please select a notebook type")
       return
@@ -255,9 +260,19 @@ export default function CreateNotebookModal({
         {/* Title */}
         <input
           className="border p-2 w-full rounded bg-white text-gray-900 border-gray-300"
-          placeholder="Notebook title"
+          placeholder="Notebook title (no spaces)"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value
+
+            // Block spaces
+            if (value.includes(" ")) {
+              alert("Notebook title cannot contain spaces. Use underscores (_) instead.")
+              return
+            }
+
+            setTitle(value)
+          }}
         />
 
         {/* Type */}
