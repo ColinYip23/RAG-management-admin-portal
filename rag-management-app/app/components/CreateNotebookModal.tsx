@@ -20,6 +20,11 @@ type CreateNotebookModalProps = {
   userProfile: UserProfile
 }
 
+type QARow = {
+  question: string
+  answer: string
+}
+
 export default function CreateNotebookModal({
   onClose,
   onCreated,
@@ -42,105 +47,118 @@ export default function CreateNotebookModal({
   // Check if user can choose department
   const canChooseDepartment = userProfile.role === "admin"
 
-  function handleXlsxFile(file: File) {
-    if (!file.name.endsWith(".xlsx")) {
-      alert("Please upload a .xlsx file")
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer)
-      const workbook = XLSX.read(data, { type: "array" })
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const json = XLSX.utils.sheet_to_json(sheet, {
-        defval: null,   // IMPORTANT: keeps empty cells as null
-        raw: false,
-      })
-
-      if (!json.length) {
-        alert("XLSX file is empty")
+  function parseQAXlsx(file: File): Promise<QARow[]> {
+    return new Promise((resolve, reject) => {
+      if (!file.name.endsWith(".xlsx")) {
+        reject(new Error("Please upload a .xlsx file"))
         return
       }
 
-      const headers = Object.keys(json[0] as any).map((h) =>
-        h.toLowerCase()
-      )
+      const reader = new FileReader()
 
-      if (!headers.includes("question") || !headers.includes("answer")) {
-        alert("XLSX must contain 'question' and 'answer' columns")
-        return
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer)
+          const workbook = XLSX.read(data, { type: "array" })
+          const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+          const rawRows = XLSX.utils.sheet_to_json(sheet, {
+            defval: null,
+            raw: false,
+          }) as Record<string, any>[]
+
+          if (!rawRows.length) {
+            reject(new Error("XLSX file is empty"))
+            return
+          }
+
+          // Normalize headers from first row
+          const headerMap = Object.keys(rawRows[0]).reduce<Record<string, string>>(
+            (acc, key) => {
+              acc[key.toLowerCase().trim()] = key
+              return acc
+            },
+            {}
+          )
+
+          if (!headerMap.question || !headerMap.answer) {
+            reject(new Error("XLSX must contain 'question' and 'answer' columns"))
+            return
+          }
+
+          const cleaned: QARow[] = rawRows
+            .map((row) => {
+              const question = row[headerMap.question]
+              const answer = row[headerMap.answer]
+
+              if (
+                typeof question !== "string" ||
+                typeof answer !== "string"
+              ) {
+                return null
+              }
+
+              if (!question.trim() || !answer.trim()) {
+                return null
+              }
+
+              return {
+                question: question.trim(),
+                answer: answer.trim(),
+              }
+            })
+            .filter(Boolean) as QARow[]
+
+          if (!cleaned.length) {
+            reject(new Error("No valid Q&A rows found in XLSX"))
+            return
+          }
+
+          resolve(cleaned)
+        } catch (err) {
+          reject(new Error("Failed to parse XLSX file"))
+        }
       }
 
+      reader.readAsArrayBuffer(file)
+    })
+  }
+
+  async function handleXlsxFile(file: File) {
+    try {
+      const rows = await parseQAXlsx(file)
       setXlsxFile(file)
-      setXlsxRows(json)
+      setXlsxRows(rows)
+    } catch (err: any) {
+      alert(err.message)
     }
-
-    reader.readAsArrayBuffer(file)
   }
 
 
   async function sendXlsxToWebhook() {
     if (!xlsxRows.length) return
 
-    const cleanedRows = xlsxRows
-      .map((row: any) => {
-        const question =
-          row.question ??
-          row.Question ??
-          row.QUESTION ??
-          null
-
-        const answer =
-          row.answer ??
-          row.Answer ??
-          row.ANSWER ??
-          null
-
-        if (
-          typeof question !== "string" ||
-          typeof answer !== "string"
-        ) {
-          return null
-        }
-
-        if (!question.trim() || !answer.trim()) {
-          return null
-        }
-
-        return {
-          question: question.trim(),
-          answer: answer.trim(),
-        }
-      })
-      .filter(Boolean)
-
-    if (cleanedRows.length === 0) {
-      throw new Error("No valid Q&A rows found in XLSX")
-    }
-
     const payload = {
       notebook_title: title,
       department,
       type,
       article_link: type === "Article" ? articleLink : undefined,
-      rows: cleanedRows,
+      rows: xlsxRows, // already validated
     }
 
     const res = await fetch(
       "https://flow2.dlabs.com.my/webhook/table_entry",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       }
     )
 
     if (!res.ok) {
-      const text = await res.text()
-      throw new Error("Failed to ingest XLSX into KB: " + text)
+      throw new Error(
+        "Failed to ingest XLSX into KB: " + (await res.text())
+      )
     }
   }
 
