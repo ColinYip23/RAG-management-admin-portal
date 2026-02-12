@@ -379,7 +379,7 @@ export default function EditNotebookModal({
 
         <input
           type="text"
-          placeholder="Search entries..."
+          placeholder="🔍 Search entries..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border p-2 w-full mb-3 rounded text-sm"
