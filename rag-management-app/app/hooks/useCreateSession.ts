@@ -61,7 +61,7 @@ export function useCreateSession() {
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
 
-      setSecondsLeft(30)
+      setSecondsLeft(60)
 
       countdownIntervalRef.current = setInterval(() => {
         setSecondsLeft((prev) => {
