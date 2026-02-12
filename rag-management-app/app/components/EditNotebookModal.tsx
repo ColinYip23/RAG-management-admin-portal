@@ -44,6 +44,8 @@ export default function EditNotebookModal({
   const [editAnswer, setEditAnswer] = useState("")
   const [savingRow, setSavingRow] = useState(false)
 
+  const [searchTerm, setSearchTerm] = useState("")
+
   /* ========================= */
   /* FETCH EXISTING ENTRIES */
   /* ========================= */
@@ -332,6 +334,36 @@ export default function EditNotebookModal({
     }
   }
 
+  const filteredEntries = entries.filter((e) => {
+    if (!searchTerm.trim()) return true
+
+    const lower = searchTerm.toLowerCase()
+
+    return (
+      e.question.toLowerCase().includes(lower) ||
+      e.answer.toLowerCase().includes(lower)
+    )
+  })
+
+  function highlightText(text: string) {
+    if (!searchTerm.trim()) return text
+
+    const regex = new RegExp(`(${searchTerm})`, "gi")
+    const parts = text.split(regex)
+
+    return parts.map((part, index) =>
+      part.toLowerCase() === searchTerm.toLowerCase() ? (
+        <span
+          key={index}
+          className="bg-yellow-200 px-0.5 rounded"
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    )
+  }
 
   /* ========================= */
   /* UI */
@@ -344,6 +376,14 @@ export default function EditNotebookModal({
         <h3 className="text-lg font-semibold text-black">
           Edit Notebook — {notebook.title}
         </h3>
+
+        <input
+          type="text"
+          placeholder="Search entries..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2 w-full mb-3 rounded text-sm"
+        />
 
         {/* ENTRIES TABLE */}
         <div className="border border-gray-300 rounded p-4">
@@ -367,7 +407,7 @@ export default function EditNotebookModal({
                 </thead>
 
                 <tbody>
-                  {entries.map((e) => {
+                  {filteredEntries.map((e) => {
                     const isEditing = editingId === e.id
 
                     return (
@@ -383,7 +423,7 @@ export default function EditNotebookModal({
                               }
                             />
                           ) : (
-                            e.question
+                            highlightText(e.question)
                           )}
                         </td>
 
@@ -399,7 +439,7 @@ export default function EditNotebookModal({
                               }
                             />
                           ) : (
-                            e.answer
+                            highlightText(e.answer)
                           )}
                         </td>
 
