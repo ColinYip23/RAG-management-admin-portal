@@ -377,17 +377,26 @@ export default function EditNotebookModal({
           Edit Notebook — {notebook.title}
         </h3>
 
-        <input
-          type="text"
-          placeholder="🔍 Search entries..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-2 w-full mb-3 rounded text-sm"
-        />
-
         {/* ENTRIES TABLE */}
         <div className="border border-gray-300 rounded p-4">
-          <h4 className="text-sm font-semibold text-black mb-2">Notebook Entries</h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-semibold text-black">
+              Notebook Entries
+            </h4>
+
+            <div className="relative w-64">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                🔍
+              </span>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border p-2 pl-9 w-full rounded text-sm"
+              />
+            </div>
+          </div>
           
           {loading ? (
             <p className="text-sm text-black">Loading entries…</p>
