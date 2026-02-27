@@ -13,7 +13,6 @@ type Notebook = {
   department: string | null
   is_global: boolean
   type: string | null
-  system_prompt?: string | null
   created_at: string
 }
 

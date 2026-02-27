@@ -10,7 +10,6 @@ type NotebookForEdit = {
   title: string
   department: string | null
   type: string | null
-  system_prompt?: string | null
   is_global?: boolean
   created_at?: string
 }
@@ -32,8 +31,7 @@ export default function EditNotebookModal({
 }) {
   const [entries, setEntries] = useState<EntryRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [systemPrompt, setSystemPrompt] = useState(notebook.system_prompt || "")
-  const [savingPrompt, setSavingPrompt] = useState(false)
+
 
   const [xlsxRows, setXlsxRows] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -83,38 +81,6 @@ export default function EditNotebookModal({
   useEffect(() => {
     fetchEntries()
   }, [notebook.id])
-
-
-  /* ========================= */
-  /* SYSTEM PROMPT UPDATE */
-  /* ========================= */
-
-  async function saveSystemPrompt() {
-    setSavingPrompt(true)
-
-    try {
-      const { error } = await supabase
-        .from("notebooks")
-        .update({ system_prompt: systemPrompt })
-        .eq("id", notebook.id)
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      alert("✅ System prompt updated successfully")
-      
-      // Call onUpdate callback if provided
-      if (onUpdate) {
-        onUpdate()
-      }
-    } catch (err: any) {
-      console.error("Error updating system prompt:", err)
-      alert(`❌ Error: ${err.message}`)
-    } finally {
-      setSavingPrompt(false)
-    }
-  }
 
   /* ========================= */
   /* XLSX HANDLING */
