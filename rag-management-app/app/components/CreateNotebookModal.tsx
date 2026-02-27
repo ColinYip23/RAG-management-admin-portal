@@ -31,7 +31,6 @@ export default function CreateNotebookModal({
   userProfile,
 }: CreateNotebookModalProps) {
   const [title, setTitle] = useState("")
-  const [systemPrompt, setSystemPrompt] = useState("")
   const [type, setType] = useState("") 
   const [isGlobal, setIsGlobal] = useState(false)
   const [department, setDepartment] = useState(
@@ -230,7 +229,6 @@ export default function CreateNotebookModal({
       const { error } = await supabase.from("notebooks").insert({
         title,
         type,
-        system_prompt: systemPrompt,
         is_global: isGlobal,
         department: finalDepartment,
       })
